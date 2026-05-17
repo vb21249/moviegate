@@ -1,0 +1,12 @@
+/.env
+/vendor
+/runtime/*
+!/runtime/.gitignore
+/web/assets
+/phpunit.result.cache
+/.idea
+/.DS_Store
+/.phpunit.cache
+/.codeception
+/tests/_output
+/tests/_support/_generated
