@@ -188,6 +188,10 @@ function createModule(string $root, string $module, array $config): void
  */
 function write(string $path, string $content): void
 {
+    if (file_exists($path)) {
+        return;
+    }
+
     file_put_contents($path, $content);
 }
 
