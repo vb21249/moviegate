@@ -17,6 +17,10 @@ services:
       - ./:/app
     env_file:
       - .env
+    environment:
+      PHP_IDE_CONFIG: "serverName=moviegate"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - mysql
       - redis

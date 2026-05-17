@@ -21,8 +21,8 @@ RUN apt-get update \
         soap \
         sockets \
         zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
+    && pecl install redis xdebug \
+    && docker-php-ext-enable redis xdebug \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
@@ -30,6 +30,7 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/99-custom.ini
+COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/20-xdebug.ini
 COPY docker/php/supervisord.conf /etc/supervisord.conf
 COPY docker/php/supervisor/queue-worker.conf /etc/supervisor/conf.d/queue-worker.conf
 COPY docker/php/supervisor/php-fpm.conf /etc/supervisor/conf.d/php-fpm.conf
