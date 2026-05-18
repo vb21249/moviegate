@@ -12,6 +12,7 @@ return [
     'basePath' => dirname(__DIR__),
     'runtimePath' => '/tmp/moviegate/runtime',
     'bootstrap' => [
+        'queue',
         ApplicationBootstrap::class,
     ],
     'controllerNamespace' => 'App\\Commands',
