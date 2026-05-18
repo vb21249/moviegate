@@ -9,5 +9,5 @@ namespace App\Modules\Movie;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Movie\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Movie\\Controllers\\Api\\V1';
 }

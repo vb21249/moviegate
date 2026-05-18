@@ -9,5 +9,5 @@ namespace App\Modules\User;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\User\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\User\\Controllers\\Api\\V1';
 }

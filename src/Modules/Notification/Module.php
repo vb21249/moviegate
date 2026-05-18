@@ -9,5 +9,5 @@ namespace App\Modules\Notification;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Notification\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Notification\\Controllers\\Api\\V1';
 }
