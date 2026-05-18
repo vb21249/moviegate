@@ -6,7 +6,16 @@ namespace App\Modules\Auth\Controllers\Api\V1;
 
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
+use App\Modules\Auth\Exceptions\AuthException;
 use App\Modules\Auth\Interfaces\AuthServiceInterface;
+use App\Modules\Auth\Requests\AuthRequest;
+use App\Modules\Auth\Requests\LoginRequest;
+use App\Modules\Auth\Requests\LogoutRequest;
+use App\Modules\Auth\Requests\RefreshTokenRequest;
+use App\Modules\Auth\Requests\RequestPasswordResetRequest;
+use App\Modules\Auth\Requests\ResetPasswordRequest;
+use App\Modules\Auth\Requests\SignupRequest;
+use App\Modules\Auth\Requests\VerifyEmailRequest;
 
 /**
  * @OA\Tag(
@@ -31,13 +40,9 @@ final class AuthController extends BaseApiController
      */
     public function actionSignup(): array
     {
-        return $this->success(
-            $this->service->execute('signup', [
-                'route' => 'Auth/signup',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(SignupRequest::class);
+
+        return $this->success($this->service->signup($request)->toArray(), statusCode: 201);
     }
 
     /**
@@ -45,13 +50,9 @@ final class AuthController extends BaseApiController
      */
     public function actionLogin(): array
     {
-        return $this->success(
-            $this->service->execute('login', [
-                'route' => 'Auth/login',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(LoginRequest::class);
+
+        return $this->success($this->service->login($request)->toArray());
     }
 
     /**
@@ -59,13 +60,9 @@ final class AuthController extends BaseApiController
      */
     public function actionLogout(): array
     {
-        return $this->success(
-            $this->service->execute('logout', [
-                'route' => 'Auth/logout',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(LogoutRequest::class);
+
+        return $this->success($this->service->logout($request)->toArray());
     }
 
     /**
@@ -73,13 +70,9 @@ final class AuthController extends BaseApiController
      */
     public function actionRefresh(): array
     {
-        return $this->success(
-            $this->service->execute('refresh', [
-                'route' => 'Auth/refresh',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(RefreshTokenRequest::class);
+
+        return $this->success($this->service->refresh($request)->toArray());
     }
 
     /**
@@ -87,13 +80,9 @@ final class AuthController extends BaseApiController
      */
     public function actionVerifyEmail(): array
     {
-        return $this->success(
-            $this->service->execute('verify-email', [
-                'route' => 'Auth/verify-email',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(VerifyEmailRequest::class);
+
+        return $this->success($this->service->verifyEmail($request)->toArray());
     }
 
     /**
@@ -101,13 +90,9 @@ final class AuthController extends BaseApiController
      */
     public function actionRequestPasswordReset(): array
     {
-        return $this->success(
-            $this->service->execute('request-password-reset', [
-                'route' => 'Auth/request-password-reset',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(RequestPasswordResetRequest::class);
+
+        return $this->success($this->service->requestPasswordReset($request)->toArray());
     }
 
     /**
@@ -115,12 +100,36 @@ final class AuthController extends BaseApiController
      */
     public function actionResetPassword(): array
     {
-        return $this->success(
-            $this->service->execute('reset-password', [
-                'route' => 'Auth/reset-password',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        $request = $this->validateRequest(ResetPasswordRequest::class);
+
+        return $this->success($this->service->resetPassword($request)->toArray());
+    }
+
+    /**
+     * @template T of AuthRequest
+     *
+     * @param class-string<T> $requestClass
+     *
+     * @return T
+     */
+    private function validateRequest(string $requestClass): AuthRequest
+    {
+        /** @var T $request */
+        $request = new $requestClass();
+        $request->load(\Yii::$app->request->bodyParams, '');
+
+        if (method_exists($request, 'loadFromBody')) {
+            $request->loadFromBody(\Yii::$app->request->bodyParams);
+        }
+
+        if (!$request->validate()) {
+            throw new AuthException(
+                $request->firstErrorMessage(),
+                422,
+                AuthException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
     }
 }
