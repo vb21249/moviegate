@@ -9,5 +9,5 @@ namespace App\Modules\Feed;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Feed\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Feed\\Controllers\\Api\\V1';
 }

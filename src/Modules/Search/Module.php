@@ -9,5 +9,5 @@ namespace App\Modules\Search;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Search\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Search\\Controllers\\Api\\V1';
 }

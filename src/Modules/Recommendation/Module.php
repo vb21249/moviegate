@@ -9,5 +9,5 @@ namespace App\Modules\Recommendation;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Recommendation\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Recommendation\\Controllers\\Api\\V1';
 }

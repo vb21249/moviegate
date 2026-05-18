@@ -9,5 +9,5 @@ namespace App\Modules\Playlist;
  */
 final class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'App\\Modules\\Playlist\\Controllers';
+    public $controllerNamespace = 'App\\Modules\\Playlist\\Controllers\\Api\\V1';
 }
