@@ -10,6 +10,7 @@ $modules = require __DIR__ . '/modules.php';
 return [
     'id' => 'moviegate-console',
     'basePath' => dirname(__DIR__),
+    'runtimePath' => '/tmp/moviegate/runtime',
     'bootstrap' => [
         ApplicationBootstrap::class,
     ],

@@ -13,6 +13,7 @@ $modules = require __DIR__ . '/modules.php';
 return [
     'id' => 'moviegate-web',
     'basePath' => dirname(__DIR__),
+    'runtimePath' => '/tmp/moviegate/runtime',
     'bootstrap' => [
         ApplicationBootstrap::class,
     ],
