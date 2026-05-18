@@ -13,7 +13,7 @@ use yii\rest\Controller;
  */
 abstract class BaseApiController extends Controller
 {
-    private const int HTTP_OK = 200;
+    private const HTTP_OK = 200;
 
     public function __construct(
         string $id,
@@ -27,6 +27,9 @@ abstract class BaseApiController extends Controller
     /**
      * @param array<string, mixed>|list<mixed>|null $data
      * @param array<string, mixed>|null $meta
+     * @param int $statusCode
+     *
+     * @return array
      */
     protected function success(array|null $data = null, ?array $meta = null, int $statusCode = 200): array
     {
@@ -38,6 +41,8 @@ abstract class BaseApiController extends Controller
     /**
      * @param string $message
      * @param string $code
+     * @param int $statusCode
+     * @return array
      */
     protected function error(string $message, string $code = 'validation_error', int $statusCode = 400): array
     {
@@ -51,6 +56,7 @@ abstract class BaseApiController extends Controller
 
     /**
      * @param PaginatedResponse $response
+     * @return array
      */
     protected function paginated(PaginatedResponse $response): array
     {

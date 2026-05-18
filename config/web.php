@@ -30,6 +30,12 @@ return [
                 'application/json' => JsonParser::class,
             ],
         ],
+        'user' => [
+            'class' => yii\web\User::class,
+            'identityClass' => App\Modules\User\Models\UserRecord::class,
+            'enableSession' => false,
+            'loginUrl' => null,
+        ],
         'response' => [
             'format' => yii\web\Response::FORMAT_JSON,
             'formatters' => [

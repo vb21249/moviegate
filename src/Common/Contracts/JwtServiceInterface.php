@@ -20,6 +20,13 @@ interface JwtServiceInterface
     public function issueRefreshToken(array $payload): string;
 
     /**
+     * @param array<string, mixed> $payload
+     * @param int $ttl
+     * @param string $type
+     */
+    public function issueToken(array $payload, int $ttl, string $type): string;
+
+    /**
      * @return array<string, mixed>
      */
     public function parse(string $token): array;

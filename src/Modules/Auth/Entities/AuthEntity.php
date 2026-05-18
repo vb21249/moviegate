@@ -5,17 +5,21 @@ declare(strict_types=1);
 namespace App\Modules\Auth\Entities;
 
 /**
- * Auth domain entity.
+ * Authenticated session entity for domain-level reasoning.
  */
 final class AuthEntity
 {
     /**
-     * @param int|string|null $id
-     * @param array<string, mixed> $attributes
+     * @param int $userId
+     * @param string $email
+     * @param string $username
+     * @param bool $emailVerified
      */
     public function __construct(
-        public readonly int|string|null $id = null,
-        public readonly array $attributes = [],
+        public readonly int $userId,
+        public readonly string $email,
+        public readonly string $username,
+        public readonly bool $emailVerified,
     ) {
     }
 }

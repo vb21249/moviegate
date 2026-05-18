@@ -25,4 +25,11 @@ return [
     'POST api/v1/integrations/tmdb/sync' => 'integration/api/v1/integration/tmdb-sync',
     'GET api/v1/notifications' => 'notification/api/v1/notification/index',
     'GET api/v1/search' => 'search/api/v1/search/index',
+    'POST api/v1/auth/signup' => 'auth/auth/signup',
+    'POST api/v1/auth/login' => 'auth/auth/login',
+    'POST api/v1/auth/logout' => 'auth/auth/logout',
+    'POST api/v1/auth/refresh' => 'auth/auth/refresh',
+    'POST api/v1/auth/verify-email' => 'auth/auth/verify-email',
+    'POST api/v1/auth/request-password-reset' => 'auth/auth/request-password-reset',
+    'POST api/v1/auth/reset-password' => 'auth/auth/reset-password',
 ];

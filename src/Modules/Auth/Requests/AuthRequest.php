@@ -7,15 +7,17 @@ namespace App\Modules\Auth\Requests;
 use App\Common\Requests\BaseRequest;
 
 /**
- * Auth request model placeholder.
+ * Base auth request model with helper methods for readable validation errors.
  */
-final class AuthRequest extends BaseRequest
+abstract class AuthRequest extends BaseRequest
 {
     /**
-     * @return array<int, array<int|string, mixed>>
+     * @return string
      */
-    public function rules(): array
+    public function firstErrorMessage(): string
     {
-        return [];
+        $firstErrors = $this->getFirstErrors();
+
+        return $firstErrors === [] ? 'Validation failed.' : (string) reset($firstErrors);
     }
 }

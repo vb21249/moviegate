@@ -7,15 +7,17 @@ namespace App\Modules\Auth\Transformers;
 use App\Modules\Auth\Responses\AuthResponse;
 
 /**
- * Auth transformer placeholder.
+ * Transforms auth response DTO into API-friendly array payload.
  */
 final class AuthTransformer
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param AuthResponse $response
+     *
+     * @return array<string, mixed>
      */
-    public function transform(array $payload = []): AuthResponse
+    public function transform(AuthResponse $response): array
     {
-        return new AuthResponse($payload);
+        return $response->toArray();
     }
 }

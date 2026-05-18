@@ -9,6 +9,8 @@ return [
         'secret' => $_ENV['JWT_SECRET'] ?? 'change-me',
         'ttl' => (int) ($_ENV['JWT_TTL'] ?? 3600),
         'refreshTtl' => (int) ($_ENV['JWT_REFRESH_TTL'] ?? 1209600),
+        'emailVerificationTtl' => (int) ($_ENV['JWT_EMAIL_VERIFICATION_TTL'] ?? 86400),
+        'passwordResetTtl' => (int) ($_ENV['JWT_PASSWORD_RESET_TTL'] ?? 3600),
     ],
     'tmdb' => [
         'baseUri' => $_ENV['TMDB_BASE_URI'] ?? 'https://api.themoviedb.org/3/',
