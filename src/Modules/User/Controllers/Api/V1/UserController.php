@@ -6,14 +6,10 @@ namespace App\Modules\User\Controllers\Api\V1;
 
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
+use App\Modules\User\Exceptions\UserException;
 use App\Modules\User\Interfaces\UserServiceInterface;
+use App\Modules\User\Requests\UserRequest;
 
-/**
- * @OA\Tag(
- *     name="User",
- *     description="User endpoints"
- * )
- */
 final class UserController extends BaseApiController
 {
     public function __construct(
@@ -31,68 +27,57 @@ final class UserController extends BaseApiController
      */
     public function actionIndex(): array
     {
-        return $this->success(
-            $this->service->execute('index', [
-                'route' => 'User/index',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->index($this->validateQueryRequest())->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionView(): array
+    public function actionView(int $id): array
     {
-        return $this->success(
-            $this->service->execute('view', [
-                'route' => 'User/view',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->view($id)->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionActivity(): array
+    public function actionActivity(int $id): array
     {
-        return $this->success(
-            $this->service->execute('activity', [
-                'route' => 'User/activity',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->activity($id, $this->validateQueryRequest())->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionRecentRatings(): array
+    public function actionRecentRatings(int $id): array
     {
-        return $this->success(
-            $this->service->execute('recent-ratings', [
-                'route' => 'User/recent-ratings',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->recentRatings($id, $this->validateQueryRequest())->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionPosts(): array
+    public function actionPosts(int $id): array
     {
-        return $this->success(
-            $this->service->execute('posts', [
-                'route' => 'User/posts',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->posts($id, $this->validateQueryRequest())->toArray());
+    }
+
+    /**
+     * @return UserRequest
+     */
+    private function validateQueryRequest(): UserRequest
+    {
+        $request = new UserRequest();
+        $request->load(\Yii::$app->request->queryParams, '');
+
+        if (!$request->validate()) {
+            throw new UserException(
+                $request->firstErrorMessage(),
+                422,
+                UserException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
     }
 }

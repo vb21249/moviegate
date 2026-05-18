@@ -11,6 +11,17 @@ use yii\web\IdentityInterface;
  * ActiveRecord for users.
  *
  * @property int|string $id
+ * @property string $email
+ * @property string $username
+ * @property string $password_hash
+ * @property string|null $avatar_url
+ * @property string|null $bio
+ * @property string $status
+ * @property string|null $email_verified_at
+ * @property string|null $last_login_at
+ * @property string $created_at
+ * @property string $updated_at
+ * @property string|null $deleted_at
  */
 final class UserRecord extends BaseActiveRecord implements IdentityInterface
 {

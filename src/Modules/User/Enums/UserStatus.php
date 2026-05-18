@@ -9,7 +9,7 @@ namespace App\Modules\User\Enums;
  */
 enum UserStatus: string
 {
-    case Draft = 'draft';
     case Active = 'active';
-    case Archived = 'archived';
+    case Suspended = 'suspended';
+    case Deleted = 'deleted';
 }
