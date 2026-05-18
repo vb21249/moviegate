@@ -7,6 +7,8 @@ use Dotenv\Dotenv;
 require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/vendor/yiisoft/yii2/Yii.php';
 
+\Yii::setAlias('@App', dirname(__DIR__) . '/src');
+
 if (file_exists(dirname(__DIR__) . '/.env')) {
     Dotenv::createImmutable(dirname(__DIR__))->safeLoad();
 }
