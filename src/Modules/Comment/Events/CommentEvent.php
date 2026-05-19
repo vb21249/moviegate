@@ -7,7 +7,7 @@ namespace App\Modules\Comment\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Comment domain event placeholder.
+ * Comment domain event.
  */
 final class CommentEvent extends DomainEvent
 {

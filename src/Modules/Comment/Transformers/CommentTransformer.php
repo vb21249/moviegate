@@ -4,18 +4,31 @@ declare(strict_types=1);
 
 namespace App\Modules\Comment\Transformers;
 
-use App\Modules\Comment\Responses\CommentResponse;
-
 /**
- * Comment transformer placeholder.
+ * Builds comment-specific API payload fragments.
  */
 final class CommentTransformer
 {
     /**
-     * @param array<string, mixed> $payload
+     * @return array<string, int|bool>
      */
-    public function transform(array $payload = []): CommentResponse
+    public function deletedPayload(int $commentId): array
     {
-        return new CommentResponse($payload);
+        return [
+            'deleted' => true,
+            'comment_id' => $commentId,
+        ];
+    }
+
+    /**
+     * @return array<string, int|bool>
+     */
+    public function likedPayload(int $commentId, int $likesCount): array
+    {
+        return [
+            'liked' => true,
+            'comment_id' => $commentId,
+            'likes_count' => $likesCount,
+        ];
     }
 }

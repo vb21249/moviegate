@@ -8,7 +8,7 @@ use App\Common\Queue\BaseJob;
 use yii\queue\Queue;
 
 /**
- * Comment queue job placeholder.
+ * Comment queue job extension point.
  */
 final class CommentJob extends BaseJob
 {

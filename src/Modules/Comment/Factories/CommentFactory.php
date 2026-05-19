@@ -7,7 +7,7 @@ namespace App\Modules\Comment\Factories;
 use App\Modules\Comment\Entities\CommentEntity;
 
 /**
- * Comment factory placeholder.
+ * Comment domain entity factory.
  */
 final class CommentFactory
 {
