@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Common\Controllers;
 
+use App\Common\Components\JwtBearerAuth;
 use App\Common\Dto\ApiResponseDto;
 use App\Common\Responses\PaginatedResponse;
 use App\Common\Transformers\ApiResponseTransformer;
 use yii\rest\Controller;
+
 /**
  * Base REST controller.
  */
@@ -63,5 +65,21 @@ abstract class BaseApiController extends Controller
         \Yii::$app->response->statusCode = self::HTTP_OK;
 
         return $this->success($response->items, $response->toArray()['pagination']);
+    }
+
+    /**
+     * @param list<string> $only
+     *
+     * @return array<string, mixed>
+     */
+    protected function requireBearerAuth(array $only): array
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => JwtBearerAuth::class,
+            'only' => $only,
+        ];
+
+        return $behaviors;
     }
 }

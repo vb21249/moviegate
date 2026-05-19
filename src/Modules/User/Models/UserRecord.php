@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Models;
 
+use App\Common\Contracts\JwtServiceInterface;
 use App\Common\Models\BaseActiveRecord;
+use App\Common\Services\FirebaseJwtService;
+use App\Modules\User\Enums\UserStatus;
+use Throwable;
+use Yii;
 use yii\web\IdentityInterface;
 
 /**
@@ -39,7 +44,32 @@ final class UserRecord extends BaseActiveRecord implements IdentityInterface
 
     public static function findIdentityByAccessToken($token, $type = null): ?IdentityInterface
     {
-        return null;
+        try {
+            /** @var JwtServiceInterface $jwtService */
+            $jwtService = Yii::$container->get(JwtServiceInterface::class);
+            $payload = $jwtService->parse((string) $token);
+        } catch (Throwable) {
+            return null;
+        }
+
+        if (($payload['type'] ?? null) !== FirebaseJwtService::TYPE_ACCESS) {
+            return null;
+        }
+
+        $userId = (int) ($payload['sub'] ?? 0);
+
+        if ($userId <= 0) {
+            return null;
+        }
+
+        /** @var UserRecord|null $identity */
+        $identity = static::find()
+            ->andWhere(['id' => $userId])
+            ->andWhere(['status' => UserStatus::Active->value])
+            ->andWhere(['deleted_at' => null])
+            ->one();
+
+        return $identity;
     }
 
     public function getId(): int|string
