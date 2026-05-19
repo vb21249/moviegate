@@ -7,7 +7,7 @@ namespace App\Modules\Comment\Validators;
 use yii\validators\Validator;
 
 /**
- * Comment validator placeholder.
+ * Comment validator extension point.
  */
 final class CommentValidator extends Validator
 {
