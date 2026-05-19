@@ -7,7 +7,7 @@ namespace App\Modules\Rating\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Rating domain event placeholder.
+ * Rating domain event.
  */
 final class RatingEvent extends DomainEvent
 {
