@@ -7,7 +7,7 @@ namespace App\Modules\Rating\Factories;
 use App\Modules\Rating\Entities\RatingEntity;
 
 /**
- * Rating factory placeholder.
+ * Rating domain entity factory.
  */
 final class RatingFactory
 {

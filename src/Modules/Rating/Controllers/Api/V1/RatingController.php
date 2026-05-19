@@ -6,7 +6,9 @@ namespace App\Modules\Rating\Controllers\Api\V1;
 
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
+use App\Modules\Rating\Exceptions\RatingException;
 use App\Modules\Rating\Interfaces\RatingServiceInterface;
+use App\Modules\Rating\Requests\RatingRequest;
 
 /**
  * @OA\Tag(
@@ -16,6 +18,14 @@ use App\Modules\Rating\Interfaces\RatingServiceInterface;
  */
 final class RatingController extends BaseApiController
 {
+    /**
+     * @return array<string, mixed>
+     */
+    public function behaviors(): array
+    {
+        return $this->requireBearerAuth(['create', 'update', 'delete', 'history']);
+    }
+
     public function __construct(
         string $id,
         $module,
@@ -31,13 +41,17 @@ final class RatingController extends BaseApiController
      */
     public function actionIndex(): array
     {
-        return $this->success(
-            $this->service->execute('index', [
-                'route' => 'Rating/index',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service
+            ->index($this->validateRequest(RatingRequest::SCENARIO_INDEX, $this->queryParams()))
+            ->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionView(int $id): array
+    {
+        return $this->success($this->service->view($id)->toArray());
     }
 
     /**
@@ -45,13 +59,27 @@ final class RatingController extends BaseApiController
      */
     public function actionCreate(): array
     {
-        return $this->success(
-            $this->service->execute('create', [
-                'route' => 'Rating/create',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service
+            ->create($this->validateRequest(RatingRequest::SCENARIO_CREATE, $this->bodyParams()), $this->userId())
+            ->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionUpdate(int $id): array
+    {
+        return $this->success($this->service
+            ->update($id, $this->validateRequest(RatingRequest::SCENARIO_UPDATE, $this->bodyParams()), $this->userId())
+            ->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionDelete(int $id): array
+    {
+        return $this->success($this->service->delete($id, $this->userId())->toArray());
     }
 
     /**
@@ -59,12 +87,51 @@ final class RatingController extends BaseApiController
      */
     public function actionHistory(): array
     {
-        return $this->success(
-            $this->service->execute('history', [
-                'route' => 'Rating/history',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service
+            ->history($this->validateRequest(RatingRequest::SCENARIO_HISTORY, $this->queryParams()), $this->userId())
+            ->toArray());
+    }
+
+    /**
+     * @param string $scenario
+     * @param array<string, mixed> $params
+     */
+    private function validateRequest(string $scenario, array $params): RatingRequest
+    {
+        $request = new RatingRequest(['scenario' => $scenario]);
+        $request->loadFromArray($params);
+
+        if (!$request->validate()) {
+            throw new RatingException(
+                $request->firstErrorMessage(),
+                422,
+                RatingException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
+    }
+
+    private function userId(): int
+    {
+        return (int) \Yii::$app->user->id;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function queryParams(): array
+    {
+        return \Yii::$app->request->queryParams;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function bodyParams(): array
+    {
+        $bodyParams = \Yii::$app->request->bodyParams;
+
+        return is_array($bodyParams) ? $bodyParams : [];
     }
 }
