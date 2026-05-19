@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Movie\Responses;
 
 /**
- * Movie response DTO.
+ * Movie response DTO with module-level payload shape.
  */
 final class MovieResponse
 {
