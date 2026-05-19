@@ -10,6 +10,6 @@ namespace App\Modules\Movie\Enums;
 enum MovieStatus: string
 {
     case Draft = 'draft';
-    case Active = 'active';
+    case Published = 'published';
     case Archived = 'archived';
 }

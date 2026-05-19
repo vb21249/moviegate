@@ -4,18 +4,30 @@ declare(strict_types=1);
 
 namespace App\Modules\Movie\Transformers;
 
-use App\Modules\Movie\Responses\MovieResponse;
-
 /**
- * Movie transformer placeholder.
+ * Builds movie-specific API payload fragments.
  */
 final class MovieTransformer
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param int $movieId
+     * @param int $userId
+     * @param array<string, mixed> $movie
+     *
+     * @return array<string, mixed>
      */
-    public function transform(array $payload = []): MovieResponse
+    public function watchedPayload(int $movieId, int $userId, array $movie): array
     {
-        return new MovieResponse($payload);
+        return [
+            'message' => 'Movie marked as watched',
+            'watched' => true,
+            'movie_id' => $movieId,
+            'user_id' => $userId,
+            'movie' => [
+                'id' => $movie['id'],
+                'slug' => $movie['slug'],
+                'title' => $movie['title'],
+            ],
+        ];
     }
 }

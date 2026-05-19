@@ -4,16 +4,39 @@ declare(strict_types=1);
 
 namespace App\Modules\Movie\Interfaces;
 
+use App\Modules\Movie\Requests\MovieRequest;
+use App\Modules\Movie\Responses\MovieResponse;
+
 /**
  * Movie application service contract.
  */
 interface MovieServiceInterface
 {
     /**
-     * @param string $operation
-     * @param array<string, mixed> $payload
+     * Returns published movie catalog items.
      *
-     * @return array<string, mixed>
+     * @param MovieRequest $request
+     *
+     * @return MovieResponse
      */
-    public function execute(string $operation, array $payload = []): array;
+    public function index(MovieRequest $request): MovieResponse;
+
+    /**
+     * Returns a published movie detail by id.
+     *
+     * @param int $movieId
+     *
+     * @return MovieResponse
+     */
+    public function view(int $movieId): MovieResponse;
+
+    /**
+     * Marks a movie as watched for a user.
+     *
+     * @param int $movieId
+     * @param int $userId
+     *
+     * @return MovieResponse
+     */
+    public function watch(int $movieId, int $userId): MovieResponse;
 }

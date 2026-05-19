@@ -6,16 +6,20 @@ namespace App\Modules\Movie\Controllers\Api\V1;
 
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
+use App\Modules\Movie\Exceptions\MovieException;
 use App\Modules\Movie\Interfaces\MovieServiceInterface;
+use App\Modules\Movie\Requests\MovieRequest;
 
-/**
- * @OA\Tag(
- *     name="Movie",
- *     description="Movie endpoints"
- * )
- */
 final class MovieController extends BaseApiController
 {
+    /**
+     * @return array<string, mixed>
+     */
+    public function behaviors(): array
+    {
+        return $this->requireBearerAuth(['watch']);
+    }
+
     public function __construct(
         string $id,
         $module,
@@ -31,41 +35,23 @@ final class MovieController extends BaseApiController
      */
     public function actionIndex(): array
     {
-        return $this->success(
-            $this->service->execute('index', [
-                'route' => 'Movie/index',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->index($this->validateQueryRequest())->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionView(): array
+    public function actionView(int $id): array
     {
-        return $this->success(
-            $this->service->execute('view', [
-                'route' => 'Movie/view',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->view($id)->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionWatch(): array
+    public function actionWatch(int $id): array
     {
-        return $this->success(
-            $this->service->execute('watch', [
-                'route' => 'Movie/watch',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->watch($id, (int) \Yii::$app->user->id)->toArray());
     }
 
     /**
@@ -73,12 +59,26 @@ final class MovieController extends BaseApiController
      */
     public function actionSearch(): array
     {
-        return $this->success(
-            $this->service->execute('search', [
-                'route' => 'Movie/search',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->actionIndex();
     }
+
+    /**
+     * @return MovieRequest
+     */
+    private function validateQueryRequest(): MovieRequest
+    {
+        $request = new MovieRequest();
+        $request->load(\Yii::$app->request->queryParams, '');
+
+        if (!$request->validate()) {
+            throw new MovieException(
+                $request->firstErrorMessage(),
+                422,
+                MovieException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
+    }
+
 }
