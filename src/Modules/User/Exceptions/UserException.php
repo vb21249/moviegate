@@ -11,4 +11,6 @@ use App\Common\Exceptions\ApiException;
  */
 final class UserException extends ApiException
 {
+    public const CODE_VALIDATION_ERROR = 'validation_error';
+    public const CODE_USER_NOT_FOUND = 'user_not_found';
 }
