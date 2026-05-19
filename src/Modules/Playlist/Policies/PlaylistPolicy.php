@@ -7,7 +7,7 @@ namespace App\Modules\Playlist\Policies;
 use App\Common\Policies\BasePolicy;
 
 /**
- * Playlist authorization policy placeholder.
+ * Playlist authorization policy extension point.
  */
 final class PlaylistPolicy extends BasePolicy
 {

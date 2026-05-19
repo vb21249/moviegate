@@ -6,7 +6,10 @@ namespace App\Modules\Playlist\Controllers\Api\V1;
 
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
+use App\Modules\Playlist\Exceptions\PlaylistException;
 use App\Modules\Playlist\Interfaces\PlaylistServiceInterface;
+use App\Modules\Playlist\Requests\PlaylistMovieRequest;
+use App\Modules\Playlist\Requests\PlaylistRequest;
 
 /**
  * @OA\Tag(
@@ -16,6 +19,22 @@ use App\Modules\Playlist\Interfaces\PlaylistServiceInterface;
  */
 final class PlaylistController extends BaseApiController
 {
+    /**
+     * @return array<string, mixed>
+     */
+    public function behaviors(): array
+    {
+        return $this->requireBearerAuth([
+            'index',
+            'view',
+            'create',
+            'update',
+            'delete',
+            'add-movie',
+            'remove-movie',
+        ]);
+    }
+
     public function __construct(
         string $id,
         $module,
@@ -31,27 +50,17 @@ final class PlaylistController extends BaseApiController
      */
     public function actionIndex(): array
     {
-        return $this->success(
-            $this->service->execute('index', [
-                'route' => 'Playlist/index',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service
+            ->index($this->validatePlaylistRequest(PlaylistRequest::SCENARIO_INDEX, $this->queryParams()), $this->userId())
+            ->toArray());
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionView(): array
+    public function actionView(int $id): array
     {
-        return $this->success(
-            $this->service->execute('view', [
-                'route' => 'Playlist/view',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->view($id, $this->userId())->toArray());
     }
 
     /**
@@ -60,39 +69,108 @@ final class PlaylistController extends BaseApiController
     public function actionCreate(): array
     {
         return $this->success(
-            $this->service->execute('create', [
-                'route' => 'Playlist/create',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
+            $this->service
+                ->create($this->validatePlaylistRequest(PlaylistRequest::SCENARIO_CREATE, $this->bodyParams()), $this->userId())
+                ->toArray(),
+            statusCode: 201
         );
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionAddMovie(): array
+    public function actionUpdate(int $id): array
+    {
+        return $this->success($this->service
+            ->update($id, $this->validatePlaylistRequest(PlaylistRequest::SCENARIO_UPDATE, $this->bodyParams()), $this->userId())
+            ->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionDelete(int $id): array
+    {
+        return $this->success($this->service->delete($id, $this->userId())->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionAddMovie(int $id): array
     {
         return $this->success(
-            $this->service->execute('add-movie', [
-                'route' => 'Playlist/add-movie',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
+            $this->service->addMovie($id, $this->validatePlaylistMovieRequest(), $this->userId())->toArray(),
+            statusCode: 201
         );
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function actionRemoveMovie(): array
+    public function actionRemoveMovie(int $id, int $movieId): array
     {
-        return $this->success(
-            $this->service->execute('remove-movie', [
-                'route' => 'Playlist/remove-movie',
-                'query' => \Yii::$app->request->queryParams,
-                'body' => \Yii::$app->request->bodyParams,
-            ])
-        );
+        return $this->success($this->service->removeMovie($id, $movieId, $this->userId())->toArray());
+    }
+
+    /**
+     * @param string $scenario
+     * @param array<string, mixed> $params
+     *
+     * @return PlaylistRequest
+     */
+    private function validatePlaylistRequest(string $scenario, array $params): PlaylistRequest
+    {
+        $request = new PlaylistRequest(['scenario' => $scenario]);
+        $request->loadFromArray($params);
+
+        if (!$request->validate()) {
+            throw new PlaylistException(
+                $request->firstErrorMessage(),
+                422,
+                PlaylistException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
+    }
+
+    private function validatePlaylistMovieRequest(): PlaylistMovieRequest
+    {
+        $request = new PlaylistMovieRequest();
+        $request->loadFromArray($this->bodyParams());
+
+        if (!$request->validate()) {
+            throw new PlaylistException(
+                $request->firstErrorMessage(),
+                422,
+                PlaylistException::CODE_VALIDATION_ERROR
+            );
+        }
+
+        return $request;
+    }
+
+    private function userId(): int
+    {
+        return (int) \Yii::$app->user->id;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function queryParams(): array
+    {
+        return \Yii::$app->request->queryParams;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function bodyParams(): array
+    {
+        $bodyParams = \Yii::$app->request->bodyParams;
+
+        return is_array($bodyParams) ? $bodyParams : [];
     }
 }

@@ -8,7 +8,7 @@ use App\Common\Queue\BaseJob;
 use yii\queue\Queue;
 
 /**
- * Playlist queue job placeholder.
+ * Playlist queue job extension point.
  */
 final class PlaylistJob extends BaseJob
 {
