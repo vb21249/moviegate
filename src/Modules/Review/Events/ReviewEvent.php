@@ -7,7 +7,7 @@ namespace App\Modules\Review\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Review domain event placeholder.
+ * Review domain event.
  */
 final class ReviewEvent extends DomainEvent
 {

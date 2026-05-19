@@ -8,7 +8,7 @@ use App\Common\Queue\BaseJob;
 use yii\queue\Queue;
 
 /**
- * Review queue job placeholder.
+ * Review queue job extension point.
  */
 final class ReviewJob extends BaseJob
 {
