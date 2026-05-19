@@ -44,6 +44,8 @@ return [
     'DELETE api/v1/comments/<id:\d+>' => 'comment/comment/delete',
     'POST api/v1/comments/<id:\d+>/like' => 'comment/comment/like',
     'GET api/v1/feed' => 'feed/feed/index',
+    'GET api/v1/feed/me' => 'feed/feed/mine',
+    'GET api/v1/feed/<id:\d+>' => 'feed/feed/view',
     'GET api/v1/recommendations' => 'recommendation/recommendation/index',
     'POST api/v1/integrations/tmdb/sync' => 'integration/integration/tmdb-sync',
     'GET api/v1/notifications' => 'notification/notification/index',

@@ -7,7 +7,7 @@ namespace App\Modules\Feed\Policies;
 use App\Common\Policies\BasePolicy;
 
 /**
- * Feed authorization policy placeholder.
+ * Feed authorization policy extension point.
  */
 final class FeedPolicy extends BasePolicy
 {

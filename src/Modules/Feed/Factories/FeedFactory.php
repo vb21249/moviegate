@@ -7,7 +7,7 @@ namespace App\Modules\Feed\Factories;
 use App\Modules\Feed\Entities\FeedEntity;
 
 /**
- * Feed factory placeholder.
+ * Feed domain entity factory.
  */
 final class FeedFactory
 {

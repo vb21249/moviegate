@@ -7,7 +7,7 @@ namespace App\Modules\Feed\Validators;
 use yii\validators\Validator;
 
 /**
- * Feed validator placeholder.
+ * Feed validator extension point.
  */
 final class FeedValidator extends Validator
 {
