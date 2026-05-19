@@ -7,7 +7,7 @@ namespace App\Modules\Feed\Jobs;
 use App\Common\Queue\BaseJob;
 
 /**
- * Feed rebuild job placeholder.
+ * Feed rebuild job extension point.
  */
 final class RebuildFeedJob extends BaseJob
 {

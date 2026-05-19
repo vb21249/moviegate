@@ -7,7 +7,7 @@ namespace App\Modules\Feed\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Feed domain event placeholder.
+ * Feed domain event.
  */
 final class FeedEvent extends DomainEvent
 {

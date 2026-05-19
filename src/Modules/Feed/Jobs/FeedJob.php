@@ -8,7 +8,7 @@ use App\Common\Queue\BaseJob;
 use yii\queue\Queue;
 
 /**
- * Feed queue job placeholder.
+ * Feed queue job extension point.
  */
 final class FeedJob extends BaseJob
 {
