@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Review\Transformers;
 
-use App\Modules\Review\Responses\ReviewResponse;
-
 /**
- * Review transformer placeholder.
+ * Builds review-specific API payload fragments.
  */
 final class ReviewTransformer
 {
     /**
-     * @param array<string, mixed> $payload
+     * @return array<string, int|bool>
      */
-    public function transform(array $payload = []): ReviewResponse
+    public function deletedPayload(int $reviewId): array
     {
-        return new ReviewResponse($payload);
+        return [
+            'deleted' => true,
+            'review_id' => $reviewId,
+        ];
     }
 }

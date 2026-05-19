@@ -7,7 +7,7 @@ namespace App\Modules\Review\Validators;
 use yii\validators\Validator;
 
 /**
- * Review validator placeholder.
+ * Review validator extension point.
  */
 final class ReviewValidator extends Validator
 {

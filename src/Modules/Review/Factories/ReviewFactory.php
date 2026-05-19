@@ -7,7 +7,7 @@ namespace App\Modules\Review\Factories;
 use App\Modules\Review\Entities\ReviewEntity;
 
 /**
- * Review factory placeholder.
+ * Review domain entity factory.
  */
 final class ReviewFactory
 {
