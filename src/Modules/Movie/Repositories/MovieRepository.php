@@ -115,7 +115,7 @@ final class MovieRepository extends BaseRepository implements MovieRepositoryInt
                 'updated_at' => 'm.updated_at',
             ])
             ->from(['m' => self::MOVIES_TABLE])
-            ->andWhere(['m.status' => MovieStatus::Published->value])
+            ->andWhere(['m.status' => MovieStatus::Active->value])
             ->andWhere(['m.deleted_at' => null]);
 
         $query = $query !== null ? trim($query) : '';
