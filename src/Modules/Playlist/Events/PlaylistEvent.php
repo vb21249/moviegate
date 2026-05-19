@@ -7,7 +7,7 @@ namespace App\Modules\Playlist\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Playlist domain event placeholder.
+ * Playlist domain event.
  */
 final class PlaylistEvent extends DomainEvent
 {

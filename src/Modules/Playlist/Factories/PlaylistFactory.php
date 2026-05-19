@@ -7,7 +7,7 @@ namespace App\Modules\Playlist\Factories;
 use App\Modules\Playlist\Entities\PlaylistEntity;
 
 /**
- * Playlist factory placeholder.
+ * Playlist domain entity factory.
  */
 final class PlaylistFactory
 {

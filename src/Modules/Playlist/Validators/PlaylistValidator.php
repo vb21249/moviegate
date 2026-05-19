@@ -7,7 +7,7 @@ namespace App\Modules\Playlist\Validators;
 use yii\validators\Validator;
 
 /**
- * Playlist validator placeholder.
+ * Playlist validator extension point.
  */
 final class PlaylistValidator extends Validator
 {
