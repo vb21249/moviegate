@@ -15,6 +15,9 @@ use yii\web\Response;
  */
 final class ApiErrorHandler extends ErrorHandler
 {
+    private const DEFAULT_ERROR_STATUS_CODE = 500;
+    private const DEFAULT_ERROR_CODE_TEXT = 'internal_error';
+
     /**
      * @param Throwable $exception
      */
@@ -24,8 +27,8 @@ final class ApiErrorHandler extends ErrorHandler
             Yii::$app->response->format = Response::FORMAT_JSON;
         }
 
-        $statusCode = $exception instanceof ApiException ? $exception->getStatusCode() : 500;
-        $code = $exception instanceof ApiException ? $exception->getErrorCode() : 'internal_error';
+        $statusCode = $exception instanceof ApiException ? $exception->getStatusCode() : self::DEFAULT_ERROR_STATUS_CODE;
+        $code = $exception instanceof ApiException ? $exception->getErrorCode() : self::DEFAULT_ERROR_CODE_TEXT;
 
         Yii::$app->response->statusCode = $statusCode;
         Yii::$app->response->data = [
