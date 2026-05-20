@@ -7,7 +7,7 @@ namespace App\Modules\Notification\Events;
 use App\Common\Events\DomainEvent;
 
 /**
- * Notification domain event placeholder.
+ * Notification domain event.
  */
 final class NotificationEvent extends DomainEvent
 {

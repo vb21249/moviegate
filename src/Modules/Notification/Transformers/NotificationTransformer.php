@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Transformers;
 
-use App\Modules\Notification\Responses\NotificationResponse;
-
 /**
- * Notification transformer placeholder.
+ * Builds notification-specific API payload fragments.
  */
 final class NotificationTransformer
 {
     /**
-     * @param array<string, mixed> $payload
+     * @return array<string, int|bool>
      */
-    public function transform(array $payload = []): NotificationResponse
+    public function markAllReadPayload(int $markedCount, int $unreadCount): array
     {
-        return new NotificationResponse($payload);
+        return [
+            'marked_read' => $markedCount,
+            'unread_count' => $unreadCount,
+        ];
     }
 }

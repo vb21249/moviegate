@@ -7,7 +7,7 @@ namespace App\Modules\Notification\Validators;
 use yii\validators\Validator;
 
 /**
- * Notification validator placeholder.
+ * Notification validator extension point.
  */
 final class NotificationValidator extends Validator
 {

@@ -10,6 +10,10 @@ use App\Common\Models\BaseActiveRecord;
  * ActiveRecord for notifications.
  *
  * @property int|string $id
+ * @property int|string $user_id
+ * @property string $type
+ * @property array|string $payload_json
+ * @property string|null $read_at
  */
 final class NotificationRecord extends BaseActiveRecord
 {
