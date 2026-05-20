@@ -40,9 +40,10 @@ COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/20-xdebug.ini
 COPY docker/php/supervisord.conf /etc/supervisord.conf
 COPY docker/php/supervisor/queue-worker.conf /etc/supervisor/conf.d/queue-worker.conf
 COPY docker/php/supervisor/php-fpm.conf /etc/supervisor/conf.d/php-fpm.conf
+COPY docker/php/supervisor/cron.conf /etc/supervisor/conf.d/cron.conf
 COPY docker/cron/crontab /etc/cron.d/moviegate
 
-RUN chmod 0644 /etc/cron.d/moviegate && crontab /etc/cron.d/moviegate
+RUN chmod 0644 /etc/cron.d/moviegate
 
 COPY . /app
 

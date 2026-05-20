@@ -1,1 +1,5 @@
-* * * * * www-data cd /app && php yii queue/run >/dev/null 2>&1
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+*/5 * * * * www-data cd /app && /usr/local/bin/php yii tmdb/import-catalog --pages=5 --max-pages=500 --language=uk-UA >> /app/runtime/tmdb-import.log 2>&1
+17 * * * * www-data cd /app && /usr/local/bin/php yii tmdb/refresh-imported --limit=100 --language=uk-UA >> /app/runtime/tmdb-refresh.log 2>&1
