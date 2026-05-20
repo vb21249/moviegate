@@ -83,7 +83,9 @@ return [
     YiiCacheInterface::class => static fn (): YiiCacheInterface => \Yii::$app->cache,
     CorrelationIdProviderInterface::class => CorrelationIdProvider::class,
     RequestResponseLoggerInterface::class => RequestResponseLogger::class,
-    HttpClientInterface::class => GuzzleHttpClient::class,
+    HttpClientInterface::class => static fn (): HttpClientInterface => new GuzzleHttpClient(
+        new \GuzzleHttp\Client()
+    ),
     SoapClientInterface::class => NativeSoapClientAdapter::class,
     CacheInterface::class => YiiCacheAdapter::class,
     RateLimiterInterface::class => RedisRateLimiter::class,
