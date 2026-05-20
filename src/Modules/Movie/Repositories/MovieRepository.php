@@ -7,6 +7,7 @@ namespace App\Modules\Movie\Repositories;
 use App\Common\Repositories\BaseRepository;
 use App\Modules\Movie\Enums\MovieStatus;
 use App\Modules\Movie\Interfaces\MovieRepositoryInterface;
+use RuntimeException;
 use yii\db\Expression;
 use yii\db\Query;
 
@@ -73,6 +74,60 @@ final class MovieRepository extends BaseRepository implements MovieRepositoryInt
             ]),
             'views_count' => $this->countRows(self::MOVIE_VIEWS_TABLE, ['movie_id' => $movieId]),
         ];
+    }
+
+    public function upsertImportedMovie(array $movie): array
+    {
+        $tmdbId = (int) $movie['tmdb_id'];
+        $now = new Expression('NOW()');
+        $columns = [
+            'tmdb_id' => $tmdbId,
+            'slug' => (string) $movie['slug'],
+            'title' => (string) $movie['title'],
+            'original_title' => $movie['original_title'] ?? null,
+            'overview' => $movie['overview'] ?? null,
+            'poster_url' => $movie['poster_url'] ?? null,
+            'backdrop_url' => $movie['backdrop_url'] ?? null,
+            'release_date' => $movie['release_date'] ?? null,
+            'runtime_minutes' => $movie['runtime_minutes'] ?? null,
+            'status' => $movie['status'] ?? MovieStatus::Active->value,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        $updates = $columns;
+        unset($updates['tmdb_id'], $updates['created_at']);
+        $updates['updated_at'] = $now;
+
+        $this->db()
+            ->createCommand()
+            ->upsert(self::MOVIES_TABLE, $columns, $updates)
+            ->execute();
+
+        $record = (new Query())
+            ->select([
+                'id',
+                'tmdb_id',
+                'slug',
+                'title',
+                'original_title',
+                'overview',
+                'poster_url',
+                'backdrop_url',
+                'release_date',
+                'runtime_minutes',
+                'status',
+                'created_at',
+                'updated_at',
+            ])
+            ->from(self::MOVIES_TABLE)
+            ->where(['tmdb_id' => $tmdbId])
+            ->one($this->db());
+
+        if ($record === false) {
+            throw new RuntimeException('Imported movie was not found after upsert.');
+        }
+
+        return $record;
     }
 
     public function markWatched(int $movieId, int $userId): void

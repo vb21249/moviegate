@@ -14,7 +14,9 @@ return [
     ],
     'tmdb' => [
         'baseUri' => $_ENV['TMDB_BASE_URI'] ?? 'https://api.themoviedb.org/3/',
+        'imageBaseUri' => $_ENV['TMDB_IMAGE_BASE_URI'] ?? 'https://image.tmdb.org/t/p/original/',
         'apiKey' => $_ENV['TMDB_API_KEY'] ?? '',
+        'accessToken' => $_ENV['TMDB_ACCESS_TOKEN'] ?? '',
     ],
     'soap' => [
         'endpoint' => $_ENV['SOAP_ENDPOINT'] ?? '',
