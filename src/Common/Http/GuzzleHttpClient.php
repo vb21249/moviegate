@@ -32,6 +32,7 @@ final class GuzzleHttpClient implements HttpClientInterface
             'headers' => $request->headers,
             'query' => $request->query,
             'body' => $request->body !== null ? Utils::streamFor(json_encode($request->body, JSON_THROW_ON_ERROR)) : null,
+            'http_errors' => false,
         ]);
 
         return new HttpResponseDto(

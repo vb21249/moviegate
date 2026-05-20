@@ -40,6 +40,13 @@ interface MovieRepositoryInterface
     public function getMovieStats(int $movieId): array;
 
     /**
+     * @param array<string, mixed> $movie
+     *
+     * @return array<string, mixed>
+     */
+    public function upsertImportedMovie(array $movie): array;
+
+    /**
      * @param int $movieId
      * @param int $userId
      */
