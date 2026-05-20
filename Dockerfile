@@ -1,5 +1,8 @@
 FROM php:8.3-fpm
 
+ARG APP_UID=1000
+ARG APP_GID=1000
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
@@ -24,6 +27,9 @@ RUN apt-get update \
     && pecl install redis xdebug \
     && docker-php-ext-enable redis xdebug \
     && rm -rf /var/lib/apt/lists/*
+
+RUN groupmod -o -g "${APP_GID}" www-data \
+    && usermod -o -u "${APP_UID}" -g www-data www-data
 
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
