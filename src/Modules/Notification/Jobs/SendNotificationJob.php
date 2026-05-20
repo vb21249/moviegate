@@ -7,7 +7,7 @@ namespace App\Modules\Notification\Jobs;
 use App\Common\Queue\BaseJob;
 
 /**
- * Notification dispatch job placeholder.
+ * Notification dispatch job extension point.
  */
 final class SendNotificationJob extends BaseJob
 {

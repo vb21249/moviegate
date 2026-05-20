@@ -8,7 +8,7 @@ use App\Common\Queue\BaseJob;
 use yii\queue\Queue;
 
 /**
- * Notification queue job placeholder.
+ * Notification queue job extension point.
  */
 final class NotificationJob extends BaseJob
 {

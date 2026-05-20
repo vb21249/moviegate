@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Interfaces;
 
+use App\Modules\Notification\Requests\NotificationRequest;
+use App\Modules\Notification\Responses\NotificationResponse;
+
 /**
  * Notification application service contract.
  */
 interface NotificationServiceInterface
 {
-    /**
-     * @param string $operation
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function execute(string $operation, array $payload = []): array;
+    public function index(NotificationRequest $request, int $userId): NotificationResponse;
+
+    public function view(int $notificationId, int $userId): NotificationResponse;
+
+    public function markRead(int $notificationId, int $userId): NotificationResponse;
+
+    public function markAllRead(NotificationRequest $request, int $userId): NotificationResponse;
 }

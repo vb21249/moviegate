@@ -7,7 +7,7 @@ namespace App\Modules\Notification\Factories;
 use App\Modules\Notification\Entities\NotificationEntity;
 
 /**
- * Notification factory placeholder.
+ * Notification domain entity factory.
  */
 final class NotificationFactory
 {
