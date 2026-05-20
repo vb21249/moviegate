@@ -47,6 +47,7 @@ return [
     'GET api/v1/feed/me' => 'feed/feed/mine',
     'GET api/v1/feed/<id:\d+>' => 'feed/feed/view',
     'GET api/v1/recommendations' => 'recommendation/recommendation/index',
+    'POST api/v1/recommendations/rebuild' => 'recommendation/recommendation/rebuild',
     'POST api/v1/integrations/tmdb/sync' => 'integration/integration/tmdb-sync',
     'GET api/v1/notifications' => 'notification/notification/index',
     'GET api/v1/notifications/<id:\d+>' => 'notification/notification/view',
