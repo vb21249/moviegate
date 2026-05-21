@@ -47,7 +47,7 @@ RUN chmod 0644 /etc/cron.d/moviegate
 
 COPY . /app
 
-RUN mkdir -p runtime web/assets tests/_output \
-    && chown -R www-data:www-data /app/runtime /app/web/assets /app/tests/_output
+RUN mkdir -p runtime public/assets tests/_output \
+    && chown -R www-data:www-data /app/runtime /app/public/assets /app/tests/_output
 
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]

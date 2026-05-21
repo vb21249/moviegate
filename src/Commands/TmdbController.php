@@ -20,7 +20,7 @@ use yii\db\Query;
 final class TmdbController extends Controller
 {
     private const MIN_TMDB_REQUEST_INTERVAL_MS = 300;
-    private const TMDB_LOCK_FILE = '/tmp/moviegate-tmdb-api.lock';
+    private const TMDB_LOCK_FILE = 'locks/tmdb-api.lock';
     private const CATALOG_CURSOR_FILE = 'tmdb-import-catalog-cursor.json';
     private const MOVIES_TABLE = '{{%movies}}';
 
@@ -53,12 +53,12 @@ final class TmdbController extends Controller
 
     public function actionImportPopular(): int
     {
-        return $this->withLock(self::TMDB_LOCK_FILE, 'TMDB import', fn (): int => $this->importPopular());
+        return $this->withLock($this->getTmdbLockFilePath(), 'TMDB import', fn (): int => $this->importPopular());
     }
 
     public function actionImportCatalog(): int
     {
-        return $this->withLock(self::TMDB_LOCK_FILE, 'TMDB catalog import', function (): int {
+        return $this->withLock($this->getTmdbLockFilePath(), 'TMDB catalog import', function (): int {
             if (!$this->tmdbCredentialsConfigured()) {
                 $this->logError('TMDB credentials are not configured; import skipped.');
 
@@ -129,7 +129,7 @@ final class TmdbController extends Controller
 
     public function actionRefreshImported(): int
     {
-        return $this->withLock(self::TMDB_LOCK_FILE, 'TMDB imported refresh', function (): int {
+        return $this->withLock($this->getTmdbLockFilePath(), 'TMDB imported refresh', function (): int {
             if (!$this->tmdbCredentialsConfigured()) {
                 $this->logError('TMDB credentials are not configured; refresh skipped.');
 
@@ -391,25 +391,101 @@ final class TmdbController extends Controller
      */
     private function withLock(string $lockFile, string $label, callable $callback): int
     {
-        $lock = fopen($lockFile, 'c');
+        $directory = dirname($lockFile);
 
-        if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
+            $this->logError(sprintf('%s lock directory cannot be created: %s', $label, $directory));
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $lock = $this->openLockFile($lockFile);
+
+        if ($lock === false) {
+            $this->logError(sprintf('%s lock file cannot be opened: %s', $label, $lockFile));
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        if (!flock($lock, LOCK_EX | LOCK_NB)) {
             $this->logInfo(sprintf('%s is already running; skipped.', $label));
 
             return ExitCode::OK;
         }
 
-        return $callback();
+        try {
+            return $callback();
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
+    /**
+     * @return resource|false
+     */
+    private function openLockFile(string $lockFile): mixed
+    {
+        if (is_file($lockFile) && !is_writable($lockFile) && is_readable($lockFile)) {
+            return @fopen($lockFile, 'r');
+        }
+
+        $lock = @fopen($lockFile, 'c');
+
+        if ($lock !== false) {
+            @chmod($lockFile, 0666);
+        }
+
+        return $lock;
     }
 
     private function logInfo(string $message): void
     {
-        $this->stdout(sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message));
+        $line = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
+
+        $this->appendCommandLog($line);
+        $this->stdout($line);
     }
 
     private function logError(string $message): void
     {
-        $this->stderr(sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message));
+        $line = sprintf("[%s] %s\n", date('Y-m-d H:i:s'), $message);
+
+        $this->appendCommandLog($line);
+        $this->stderr($line);
+    }
+
+    private function appendCommandLog(string $line): void
+    {
+        $file = $this->commandLogFile();
+        $directory = dirname($file);
+
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
+            $this->stderr(sprintf(
+                "[%s] TMDB command log directory cannot be created: %s\n",
+                date('Y-m-d H:i:s'),
+                $directory
+            ));
+
+            return;
+        }
+
+        if (@file_put_contents($file, $line, FILE_APPEND | LOCK_EX) === false) {
+            $this->stderr(sprintf(
+                "[%s] TMDB command log file cannot be written: %s\n",
+                date('Y-m-d H:i:s'),
+                $file
+            ));
+        }
+    }
+
+    private function commandLogFile(): string
+    {
+        $actionId = $this->action?->id ?? 'command';
+        $fileName = preg_replace('/[^A-Za-z0-9_.-]+/', '-', $actionId);
+        $fileName = $fileName !== null ? trim($fileName, '-') : '';
+
+        return rtrim(Yii::$app->runtimePath, '/') . '/logs/integration/tmdb/commands/' . ($fileName !== '' ? $fileName : 'command') . '.log';
     }
 
     private function tmdbCredentialsConfigured(): bool
@@ -424,4 +500,10 @@ final class TmdbController extends Controller
     {
         return $credential !== '' && $credential !== 'change-me';
     }
+
+    private function getTmdbLockFilePath(): string
+    {
+        return rtrim(Yii::$app->runtimePath, '/') . '/' . self::TMDB_LOCK_FILE;
+    }
+
 }

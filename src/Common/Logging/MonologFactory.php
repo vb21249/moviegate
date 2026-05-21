@@ -8,6 +8,8 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
+use RuntimeException;
+use Yii;
 
 /**
  * Produces named Monolog channels.
@@ -47,10 +49,11 @@ final class MonologFactory
 
     private static function logDirectory(): string
     {
-        $directory = dirname(__DIR__, 3) . '/runtime/logs';
+        $runtimePath = Yii::$app !== null ? Yii::$app->runtimePath : dirname(__DIR__, 3) . '/runtime';
+        $directory = rtrim($runtimePath, '/') . '/logs';
 
-        if (!is_dir($directory)) {
-            mkdir($directory, 0775, true);
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
+            throw new RuntimeException(sprintf('Log directory cannot be created: %s', $directory));
         }
 
         return $directory;

@@ -6,11 +6,12 @@ use App\Common\Bootstrap\ApplicationBootstrap;
 
 $params = require __DIR__ . '/params.php';
 $modules = require __DIR__ . '/modules.php';
+$runtimePath = require __DIR__ . '/runtime.php';
 
 return [
     'id' => 'moviegate-console',
     'basePath' => dirname(__DIR__),
-    'runtimePath' => '/tmp/moviegate/runtime',
+    'runtimePath' => $runtimePath,
     'bootstrap' => [
         'queue',
         ApplicationBootstrap::class,
