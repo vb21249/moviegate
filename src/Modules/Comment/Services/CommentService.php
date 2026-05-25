@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Comment\Services;
 
+use App\Common\Events\DomainEventBusInterface;
 use App\Common\Services\AbstractService;
+use App\Modules\Comment\Events\CommentEvent;
 use App\Modules\Comment\Exceptions\CommentException;
 use App\Modules\Comment\Interfaces\CommentRepositoryInterface;
 use App\Modules\Comment\Interfaces\CommentServiceInterface;
@@ -22,6 +24,7 @@ final class CommentService extends AbstractService implements CommentServiceInte
         private readonly CommentRepositoryInterface $repository,
         private readonly CommentMapper $mapper,
         private readonly CommentTransformer $transformer,
+        private readonly ?DomainEventBusInterface $eventBus = null,
     ) {
     }
 
@@ -65,8 +68,17 @@ final class CommentService extends AbstractService implements CommentServiceInte
         $attributes = $request->commentAttributes();
         $this->validateTarget($request->movieId(), $request->reviewId());
 
+        $comment = $this->repository->createComment($userId, $attributes);
+        $extraPayload = [];
+
+        if (($comment['review_user_id'] ?? null) !== null) {
+            $extraPayload['recipient_user_id'] = (int) $comment['review_user_id'];
+        }
+
+        $this->publishCommentEvent(CommentEvent::CREATED, $comment, $extraPayload);
+
         return new CommentResponse([
-            'comment' => $this->mapper->mapComment($this->repository->createComment($userId, $attributes))->toArray(),
+            'comment' => $this->mapper->mapComment($comment)->toArray(),
         ]);
     }
 
@@ -80,8 +92,14 @@ final class CommentService extends AbstractService implements CommentServiceInte
             'review_id' => $parent['review_id'] !== null ? (int) $parent['review_id'] : null,
         ];
 
+        $comment = $this->repository->createComment($userId, $attributes);
+        $this->publishCommentEvent(CommentEvent::REPLIED, $comment, [
+            'parent_comment_id' => $parentId,
+            'recipient_user_id' => (int) $parent['user_id'],
+        ]);
+
         return new CommentResponse([
-            'comment' => $this->mapper->mapComment($this->repository->createComment($userId, $attributes))->toArray(),
+            'comment' => $this->mapper->mapComment($comment)->toArray(),
         ]);
     }
 
@@ -116,8 +134,11 @@ final class CommentService extends AbstractService implements CommentServiceInte
 
     public function like(int $commentId, int $userId): CommentResponse
     {
-        $this->findCommentOrFail($commentId);
+        $target = $this->findCommentOrFail($commentId);
         $comment = $this->repository->likeComment($commentId, $userId);
+        $this->publishCommentEvent(CommentEvent::LIKED, $comment, [
+            'recipient_user_id' => (int) $target['user_id'],
+        ], $userId);
 
         return new CommentResponse($this->transformer->likedPayload($commentId, (int) $comment['likes_count']));
     }
@@ -183,5 +204,52 @@ final class CommentService extends AbstractService implements CommentServiceInte
             'total' => $total,
             'has_more' => $offset + $limit < $total,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $comment
+     * @param array<string, mixed> $extraPayload
+     */
+    private function publishCommentEvent(
+        string $eventName,
+        array $comment,
+        array $extraPayload = [],
+        ?int $actorId = null
+    ): void {
+        if ($this->eventBus === null) {
+            return;
+        }
+
+        $movieId = $comment['movie_id'] ?? $comment['review_movie_id'] ?? null;
+        $movieSlug = $comment['movie_slug'] ?? $comment['review_movie_slug'] ?? null;
+        $movieTitle = $comment['movie_title'] ?? $comment['review_movie_title'] ?? null;
+        $moviePosterUrl = $comment['movie_poster_url'] ?? $comment['review_movie_poster_url'] ?? null;
+
+        $payload = [
+            'comment_id' => (int) $comment['id'],
+            'parent_comment_id' => $comment['parent_id'] !== null ? (int) $comment['parent_id'] : null,
+            'movie_id' => $movieId !== null ? (int) $movieId : null,
+            'movie_slug' => $movieSlug !== null ? (string) $movieSlug : null,
+            'movie_title' => $movieTitle !== null ? (string) $movieTitle : null,
+            'movie_poster_url' => $moviePosterUrl !== null ? (string) $moviePosterUrl : null,
+            'review_id' => $comment['review_id'] !== null ? (int) $comment['review_id'] : null,
+            'review_title' => $comment['review_title'] !== null ? (string) $comment['review_title'] : null,
+            'body_excerpt' => $this->excerpt((string) $comment['body']),
+            'likes_count' => (int) $comment['likes_count'],
+        ];
+
+        $this->eventBus->publish(new CommentEvent(
+            $eventName,
+            $actorId ?? (int) $comment['user_id'],
+            (int) $comment['id'],
+            array_merge($payload, $extraPayload),
+        ));
+    }
+
+    private function excerpt(string $body): string
+    {
+        $body = trim($body);
+
+        return mb_substr($body, 0, 160);
     }
 }

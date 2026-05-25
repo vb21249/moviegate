@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Rating\Services;
 
+use App\Common\Events\DomainEventBusInterface;
 use App\Common\Services\AbstractService;
+use App\Modules\Rating\Events\RatingEvent;
 use App\Modules\Rating\Exceptions\RatingException;
 use App\Modules\Rating\Interfaces\RatingRepositoryInterface;
 use App\Modules\Rating\Interfaces\RatingServiceInterface;
@@ -22,6 +24,7 @@ final class RatingService extends AbstractService implements RatingServiceInterf
         private readonly RatingRepositoryInterface $repository,
         private readonly RatingMapper $mapper,
         private readonly RatingTransformer $transformer,
+        private readonly ?DomainEventBusInterface $eventBus = null,
     ) {
     }
 
@@ -69,14 +72,18 @@ final class RatingService extends AbstractService implements RatingServiceInterf
             unset($attributes['movie_id']);
             $this->repository->updateRating((int) $existingRating['id'], $userId, $attributes);
             $rating = $this->repository->findOwnedRating((int) $existingRating['id'], $userId) ?? $existingRating;
+            $this->publishRatingEvent(RatingEvent::UPDATED, $rating);
 
             return new RatingResponse([
                 'rating' => $this->mapper->mapRating($rating)->toArray(),
             ]);
         }
 
+        $rating = $this->repository->createRating($userId, $attributes);
+        $this->publishRatingEvent(RatingEvent::CREATED, $rating);
+
         return new RatingResponse([
-            'rating' => $this->mapper->mapRating($this->repository->createRating($userId, $attributes))->toArray(),
+            'rating' => $this->mapper->mapRating($rating)->toArray(),
         ]);
     }
 
@@ -96,6 +103,7 @@ final class RatingService extends AbstractService implements RatingServiceInterf
 
         $this->repository->updateRating($ratingId, $userId, $attributes);
         $updatedRating = $this->repository->findOwnedRating($ratingId, $userId) ?? $rating;
+        $this->publishRatingEvent(RatingEvent::UPDATED, $updatedRating);
 
         return new RatingResponse([
             'rating' => $this->mapper->mapRating($updatedRating)->toArray(),
@@ -168,5 +176,32 @@ final class RatingService extends AbstractService implements RatingServiceInterf
             'total' => $total,
             'has_more' => $offset + $limit < $total,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $rating
+     */
+    private function publishRatingEvent(string $eventName, array $rating): void
+    {
+        if ($this->eventBus === null) {
+            return;
+        }
+
+        $this->eventBus->publish(new RatingEvent(
+            $eventName,
+            (int) $rating['user_id'],
+            (int) $rating['id'],
+            [
+                'rating_id' => (int) $rating['id'],
+                'movie_id' => (int) $rating['movie_id'],
+                'movie_slug' => $rating['movie_slug'] !== null ? (string) $rating['movie_slug'] : null,
+                'movie_title' => $rating['movie_title'] !== null ? (string) $rating['movie_title'] : null,
+                'movie_poster_url' => $rating['movie_poster_url'] !== null
+                    ? (string) $rating['movie_poster_url']
+                    : null,
+                'score' => (int) $rating['score'],
+                'review_text' => $rating['review_text'] !== null ? (string) $rating['review_text'] : null,
+            ],
+        ));
     }
 }
