@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Review\Services;
 
+use App\Common\Events\DomainEventBusInterface;
 use App\Common\Services\AbstractService;
 use App\Modules\Review\Enums\ReviewStatus;
+use App\Modules\Review\Events\ReviewEvent;
 use App\Modules\Review\Exceptions\ReviewException;
 use App\Modules\Review\Interfaces\ReviewRepositoryInterface;
 use App\Modules\Review\Interfaces\ReviewServiceInterface;
@@ -23,6 +25,7 @@ final class ReviewService extends AbstractService implements ReviewServiceInterf
         private readonly ReviewRepositoryInterface $repository,
         private readonly ReviewMapper $mapper,
         private readonly ReviewTransformer $transformer,
+        private readonly ?DomainEventBusInterface $eventBus = null,
     ) {
     }
 
@@ -62,8 +65,11 @@ final class ReviewService extends AbstractService implements ReviewServiceInterf
         $this->validateMovieAndRating($movieId, $request->ratingId(), $userId);
         $attributes['status'] = $attributes['status'] ?? ReviewStatus::Published->value;
 
+        $review = $this->repository->createReview($userId, $attributes);
+        $this->publishPublishedReviewEvent(ReviewEvent::CREATED, $review);
+
         return new ReviewResponse([
-            'review' => $this->mapper->mapReview($this->repository->createReview($userId, $attributes))->toArray(),
+            'review' => $this->mapper->mapReview($review)->toArray(),
         ]);
     }
 
@@ -86,6 +92,12 @@ final class ReviewService extends AbstractService implements ReviewServiceInterf
 
         $this->repository->updateReview($reviewId, $userId, $attributes);
         $updatedReview = $this->repository->findOwnedReview($reviewId, $userId) ?? $review;
+        $this->publishPublishedReviewEvent(
+            (($review['status'] ?? null) === ReviewStatus::Published->value)
+                ? ReviewEvent::UPDATED
+                : ReviewEvent::PUBLISHED,
+            $updatedReview
+        );
 
         return new ReviewResponse([
             'review' => $this->mapper->mapReview($updatedReview)->toArray(),
@@ -153,5 +165,32 @@ final class ReviewService extends AbstractService implements ReviewServiceInterf
             'total' => $total,
             'has_more' => $offset + $limit < $total,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $review
+     */
+    private function publishPublishedReviewEvent(string $eventName, array $review): void
+    {
+        if ($this->eventBus === null || ($review['status'] ?? null) !== ReviewStatus::Published->value) {
+            return;
+        }
+
+        $this->eventBus->publish(new ReviewEvent(
+            $eventName,
+            (int) $review['user_id'],
+            (int) $review['id'],
+            [
+                'review_id' => (int) $review['id'],
+                'movie_id' => (int) $review['movie_id'],
+                'movie_slug' => $review['movie_slug'] !== null ? (string) $review['movie_slug'] : null,
+                'movie_title' => $review['movie_title'] !== null ? (string) $review['movie_title'] : null,
+                'movie_poster_url' => $review['movie_poster_url'] !== null
+                    ? (string) $review['movie_poster_url']
+                    : null,
+                'title' => (string) $review['title'],
+                'published_at' => $review['published_at'] !== null ? (string) $review['published_at'] : null,
+            ],
+        ));
     }
 }

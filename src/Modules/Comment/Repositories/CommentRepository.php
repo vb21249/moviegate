@@ -255,6 +255,10 @@ final class CommentRepository extends BaseRepository implements CommentRepositor
                 'movie_release_date' => 'm.release_date',
                 'review_title' => 'r.title',
                 'review_movie_id' => 'r.movie_id',
+                'review_user_id' => 'r.user_id',
+                'review_movie_slug' => 'rm.slug',
+                'review_movie_title' => 'rm.title',
+                'review_movie_poster_url' => 'rm.poster_url',
             ])
             ->from(['c' => self::COMMENTS_TABLE])
             ->leftJoin(['u' => self::USERS_TABLE], 'u.id = c.user_id')

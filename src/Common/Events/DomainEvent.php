@@ -17,4 +17,21 @@ abstract class DomainEvent
     {
         $this->occurredAt = new DateTimeImmutable();
     }
+
+    public function eventName(): string
+    {
+        return static::class;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function payload(): array
+    {
+        if (property_exists($this, 'payload') && is_array($this->payload)) {
+            return $this->payload;
+        }
+
+        return [];
+    }
 }

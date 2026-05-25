@@ -12,6 +12,11 @@ use App\Common\Contracts\RateLimiterInterface;
 use App\Common\Contracts\RequestResponseLoggerInterface;
 use App\Common\Contracts\SearchServiceInterface;
 use App\Common\Contracts\SoapClientInterface;
+use App\Common\Events\DomainEventBusInterface;
+use App\Common\Events\DomainEventDispatcherInterface;
+use App\Common\Events\DomainEventSubscriberRegistry;
+use App\Common\Events\QueuedDomainEventBus;
+use App\Common\Events\SyncDomainEventDispatcher;
 use App\Common\Http\GuzzleHttpClient;
 use App\Common\Http\SimpleCircuitBreaker;
 use App\Common\Logging\CorrelationIdProvider;
@@ -35,12 +40,15 @@ use App\Modules\Auth\Repositories\AuthRepository;
 use App\Modules\Auth\Services\AuthService;
 use App\Modules\Comment\Interfaces\CommentRepositoryInterface;
 use App\Modules\Comment\Interfaces\CommentServiceInterface;
+use App\Modules\Comment\Mappers\CommentMapper;
 use App\Modules\Comment\Repositories\CommentRepository;
 use App\Modules\Comment\Services\CommentService;
+use App\Modules\Comment\Transformers\CommentTransformer;
 use App\Modules\Feed\Interfaces\FeedRepositoryInterface;
 use App\Modules\Feed\Interfaces\FeedServiceInterface;
 use App\Modules\Feed\Repositories\FeedRepository;
 use App\Modules\Feed\Services\FeedService;
+use App\Modules\Feed\Subscribers\SocialActivityFeedSubscriber;
 use App\Modules\Integration\Interfaces\IntegrationRepositoryInterface;
 use App\Modules\Integration\Interfaces\IntegrationServiceInterface;
 use App\Modules\Integration\Repositories\IntegrationRepository;
@@ -53,22 +61,27 @@ use App\Modules\Notification\Interfaces\NotificationRepositoryInterface;
 use App\Modules\Notification\Interfaces\NotificationServiceInterface;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use App\Modules\Notification\Services\NotificationService;
+use App\Modules\Notification\Subscribers\SocialActivityNotificationSubscriber;
 use App\Modules\Playlist\Interfaces\PlaylistRepositoryInterface;
 use App\Modules\Playlist\Interfaces\PlaylistServiceInterface;
 use App\Modules\Playlist\Repositories\PlaylistRepository;
 use App\Modules\Playlist\Services\PlaylistService;
 use App\Modules\Rating\Interfaces\RatingRepositoryInterface;
 use App\Modules\Rating\Interfaces\RatingServiceInterface;
+use App\Modules\Rating\Mappers\RatingMapper;
 use App\Modules\Rating\Repositories\RatingRepository;
 use App\Modules\Rating\Services\RatingService;
+use App\Modules\Rating\Transformers\RatingTransformer;
 use App\Modules\Recommendation\Interfaces\RecommendationRepositoryInterface;
 use App\Modules\Recommendation\Interfaces\RecommendationServiceInterface;
 use App\Modules\Recommendation\Repositories\RecommendationRepository;
 use App\Modules\Recommendation\Services\RecommendationService;
 use App\Modules\Review\Interfaces\ReviewRepositoryInterface;
 use App\Modules\Review\Interfaces\ReviewServiceInterface;
+use App\Modules\Review\Mappers\ReviewMapper;
 use App\Modules\Review\Repositories\ReviewRepository;
 use App\Modules\Review\Services\ReviewService;
+use App\Modules\Review\Transformers\ReviewTransformer;
 use App\Modules\Search\Interfaces\SearchRepositoryInterface;
 use App\Modules\Search\Interfaces\SearchServiceModuleInterface;
 use App\Modules\Search\Repositories\SearchRepository;
@@ -92,6 +105,12 @@ return [
     FeatureFlagInterface::class => ArrayFeatureFlagService::class,
     JwtServiceInterface::class => FirebaseJwtService::class,
     CircuitBreakerInterface::class => SimpleCircuitBreaker::class,
+    DomainEventBusInterface::class => QueuedDomainEventBus::class,
+    DomainEventDispatcherInterface::class => SyncDomainEventDispatcher::class,
+    DomainEventSubscriberRegistry::class => static fn (): DomainEventSubscriberRegistry => new DomainEventSubscriberRegistry([
+        \Yii::$container->get(SocialActivityFeedSubscriber::class),
+        \Yii::$container->get(SocialActivityNotificationSubscriber::class),
+    ]),
     SearchServiceInterface::class => SearchService::class,
     SearchServiceModuleInterface::class => SearchService::class,
     CommonServiceInterface::class => CommonService::class,
@@ -104,11 +123,26 @@ return [
     MovieRepositoryInterface::class => MovieRepository::class,
     PlaylistServiceInterface::class => PlaylistService::class,
     PlaylistRepositoryInterface::class => PlaylistRepository::class,
-    ReviewServiceInterface::class => ReviewService::class,
+    ReviewServiceInterface::class => static fn (): ReviewServiceInterface => new ReviewService(
+        \Yii::$container->get(ReviewRepositoryInterface::class),
+        \Yii::$container->get(ReviewMapper::class),
+        \Yii::$container->get(ReviewTransformer::class),
+        \Yii::$container->get(DomainEventBusInterface::class),
+    ),
     ReviewRepositoryInterface::class => ReviewRepository::class,
-    RatingServiceInterface::class => RatingService::class,
+    RatingServiceInterface::class => static fn (): RatingServiceInterface => new RatingService(
+        \Yii::$container->get(RatingRepositoryInterface::class),
+        \Yii::$container->get(RatingMapper::class),
+        \Yii::$container->get(RatingTransformer::class),
+        \Yii::$container->get(DomainEventBusInterface::class),
+    ),
     RatingRepositoryInterface::class => RatingRepository::class,
-    CommentServiceInterface::class => CommentService::class,
+    CommentServiceInterface::class => static fn (): CommentServiceInterface => new CommentService(
+        \Yii::$container->get(CommentRepositoryInterface::class),
+        \Yii::$container->get(CommentMapper::class),
+        \Yii::$container->get(CommentTransformer::class),
+        \Yii::$container->get(DomainEventBusInterface::class),
+    ),
     CommentRepositoryInterface::class => CommentRepository::class,
     FeedServiceInterface::class => FeedService::class,
     FeedRepositoryInterface::class => FeedRepository::class,
