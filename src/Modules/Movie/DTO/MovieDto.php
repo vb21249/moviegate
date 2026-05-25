@@ -23,6 +23,7 @@ final class MovieDto
      * @param string $status
      * @param string|null $createdAt
      * @param string|null $updatedAt
+     * @param string|null $language
      * @param array<string, int|float|null> $stats
      */
     public function __construct(
@@ -39,6 +40,7 @@ final class MovieDto
         public readonly string $status,
         public readonly ?string $createdAt,
         public readonly ?string $updatedAt,
+        public readonly ?string $language = null,
         public readonly array $stats = [],
     ) {
     }
@@ -60,6 +62,7 @@ final class MovieDto
             'release_date' => $this->releaseDate,
             'runtime_minutes' => $this->runtimeMinutes,
             'status' => $this->status,
+            'language' => $this->language,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'stats' => $this->stats,

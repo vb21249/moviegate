@@ -31,6 +31,13 @@ return [
         'apiDays' => (int) ($_ENV['API_LOG_RETENTION_DAYS'] ?? 30),
         'integrationDays' => (int) ($_ENV['INTEGRATION_LOG_RETENTION_DAYS'] ?? 90),
     ],
+    'i18n' => [
+        'defaultLanguage' => $_ENV['APP_DEFAULT_LANGUAGE'] ?? 'en-US',
+        'supportedLanguages' => array_values(array_filter(array_map(
+            static fn (string $language): string => trim($language),
+            explode(',', $_ENV['APP_SUPPORTED_LANGUAGES'] ?? 'en-US,uk-UA,ru-RU')
+        ))),
+    ],
     'features' => [
         'registration' => filter_var($_ENV['FEATURE_REGISTRATION_ENABLED'] ?? true, FILTER_VALIDATE_BOOL),
         'recommendations' => filter_var($_ENV['FEATURE_RECOMMENDATIONS_ENABLED'] ?? false, FILTER_VALIDATE_BOOL),

@@ -16,21 +16,21 @@ interface MovieRepositoryInterface
      *
      * @return list<array<string, mixed>>
      */
-    public function findPublishedMovies(int $limit, int $offset, ?string $query = null): array;
+    public function findPublishedMovies(int $limit, int $offset, ?string $query = null, ?string $language = null): array;
 
     /**
      * @param string|null $query
      *
      * @return int
      */
-    public function countPublishedMovies(?string $query = null): int;
+    public function countPublishedMovies(?string $query = null, ?string $language = null): int;
 
     /**
      * @param int $movieId
      *
      * @return array<string, mixed>|null
      */
-    public function findPublishedMovie(int $movieId): ?array;
+    public function findPublishedMovie(int $movieId, ?string $language = null): ?array;
 
     /**
      * @param int $movieId

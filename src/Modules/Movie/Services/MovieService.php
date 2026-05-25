@@ -29,21 +29,26 @@ final class MovieService extends AbstractService implements MovieServiceInterfac
     {
         $movies = array_map(
             fn (array $movie): array => $this->mapper->mapMovie($movie)->toArray(),
-            $this->repository->findPublishedMovies($request->limit(), $request->offset(), $request->query())
+            $this->repository->findPublishedMovies(
+                $request->limit(),
+                $request->offset(),
+                $request->query(),
+                $request->language()
+            )
         );
 
         return new MovieResponse([
             'items' => $movies,
             'pagination' => $this->pagination(
                 $request,
-                $this->repository->countPublishedMovies($request->query())
+                $this->repository->countPublishedMovies($request->query(), $request->language())
             ),
         ]);
     }
 
-    public function view(int $movieId): MovieResponse
+    public function view(int $movieId, ?string $language = null): MovieResponse
     {
-        $movie = $this->findMovieOrFail($movieId);
+        $movie = $this->findMovieOrFail($movieId, $language);
 
         return new MovieResponse([
             'movie' => $this->mapper
@@ -52,9 +57,9 @@ final class MovieService extends AbstractService implements MovieServiceInterfac
         ]);
     }
 
-    public function watch(int $movieId, int $userId): MovieResponse
+    public function watch(int $movieId, int $userId, ?string $language = null): MovieResponse
     {
-        $movie = $this->findMovieOrFail($movieId);
+        $movie = $this->findMovieOrFail($movieId, $language);
         $this->repository->markWatched($movieId, $userId);
 
         return new MovieResponse(
@@ -67,9 +72,9 @@ final class MovieService extends AbstractService implements MovieServiceInterfac
      *
      * @return array<string, mixed>
      */
-    private function findMovieOrFail(int $movieId): array
+    private function findMovieOrFail(int $movieId, ?string $language = null): array
     {
-        $movie = $this->repository->findPublishedMovie($movieId);
+        $movie = $this->repository->findPublishedMovie($movieId, $language);
 
         if ($movie === null) {
             throw new MovieException('Movie not found', 404, MovieException::CODE_MOVIE_NOT_FOUND);

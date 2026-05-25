@@ -12,6 +12,8 @@ return [
     'id' => 'moviegate-console',
     'basePath' => dirname(__DIR__),
     'runtimePath' => $runtimePath,
+    'language' => $params['i18n']['defaultLanguage'] ?? 'en-US',
+    'sourceLanguage' => 'en-US',
     'bootstrap' => [
         'queue',
         ApplicationBootstrap::class,

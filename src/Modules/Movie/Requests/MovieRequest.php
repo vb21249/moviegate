@@ -14,6 +14,7 @@ final class MovieRequest extends BaseRequest
     public int|string $limit = 20;
     public int|string $offset = 0;
     public ?string $q = null;
+    public ?string $language = null;
 
     /**
      * @return array<int, array<int|string, mixed>>
@@ -26,6 +27,8 @@ final class MovieRequest extends BaseRequest
             ['offset', 'integer', 'min' => 0],
             ['q', 'string', 'min' => 1, 'max' => 190],
             ['q', 'trim'],
+            ['language', 'trim'],
+            ['language', 'match', 'pattern' => '/^[a-z]{2}(?:-[A-Z]{2})?$/'],
         ];
     }
 
@@ -51,6 +54,11 @@ final class MovieRequest extends BaseRequest
     public function query(): ?string
     {
         return $this->q !== null && $this->q !== '' ? $this->q : null;
+    }
+
+    public function language(): ?string
+    {
+        return $this->language !== null && $this->language !== '' ? $this->language : null;
     }
 
     /**

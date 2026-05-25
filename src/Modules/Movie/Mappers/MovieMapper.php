@@ -33,6 +33,7 @@ final class MovieMapper
             status: (string) $row['status'],
             createdAt: $row['created_at'] !== null ? (string) $row['created_at'] : null,
             updatedAt: $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
+            language: isset($row['language']) && $row['language'] !== null ? (string) $row['language'] : null,
             stats: $stats,
         );
     }

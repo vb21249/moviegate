@@ -27,6 +27,7 @@ final class MovieTransformer
                 'id' => $movie['id'],
                 'slug' => $movie['slug'],
                 'title' => $movie['title'],
+                'language' => $movie['language'] ?? null,
             ],
         ];
     }

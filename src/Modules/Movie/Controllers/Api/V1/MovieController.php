@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Movie\Controllers\Api\V1;
 
 use App\Common\Auth\RbacPermission;
+use App\Common\Contracts\LocaleResolverInterface;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Movie\Exceptions\MovieException;
@@ -28,6 +29,7 @@ final class MovieController extends BaseApiController
         $module,
         ApiResponseTransformer $transformer,
         private readonly MovieServiceInterface $service,
+        private readonly LocaleResolverInterface $localeResolver,
         array $config = [],
     ) {
         parent::__construct($id, $module, $transformer, $config);
@@ -46,7 +48,7 @@ final class MovieController extends BaseApiController
      */
     public function actionView(int $id): array
     {
-        return $this->success($this->service->view($id)->toArray());
+        return $this->success($this->service->view($id, $this->validateQueryRequest()->language())->toArray());
     }
 
     /**
@@ -54,7 +56,11 @@ final class MovieController extends BaseApiController
      */
     public function actionWatch(int $id): array
     {
-        return $this->success($this->service->watch($id, (int) \Yii::$app->user->id)->toArray());
+        return $this->success($this->service->watch(
+            $id,
+            (int) \Yii::$app->user->id,
+            $this->validateQueryRequest()->language()
+        )->toArray());
     }
 
     /**
@@ -72,6 +78,7 @@ final class MovieController extends BaseApiController
     {
         $request = new MovieRequest();
         $request->load(\Yii::$app->request->queryParams, '');
+        $request->language = $this->localeResolver->resolve($this->requestedLanguage($request));
 
         if (!$request->validate()) {
             throw new MovieException(
@@ -84,4 +91,14 @@ final class MovieController extends BaseApiController
         return $request;
     }
 
+    private function requestedLanguage(MovieRequest $request): ?string
+    {
+        if (is_string($request->language) && $request->language !== '') {
+            return $request->language;
+        }
+
+        $language = \Yii::$app->request->queryParams['lang'] ?? null;
+
+        return is_string($language) ? $language : null;
+    }
 }

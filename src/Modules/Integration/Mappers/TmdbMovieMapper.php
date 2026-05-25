@@ -18,7 +18,7 @@ final class TmdbMovieMapper
      *
      * @return array<string, mixed>
      */
-    public function mapToCatalogMovie(array $tmdbMovie, string $imageBaseUri): array
+    public function mapToCatalogMovie(array $tmdbMovie, string $imageBaseUri, ?string $language = null): array
     {
         $tmdbId = (int) ($tmdbMovie['id'] ?? 0);
 
@@ -45,6 +45,7 @@ final class TmdbMovieMapper
             'release_date' => $releaseDate,
             'runtime_minutes' => $this->positiveInt($tmdbMovie['runtime'] ?? null),
             'status' => MovieStatus::Active->value,
+            'language' => $language,
         ];
     }
 

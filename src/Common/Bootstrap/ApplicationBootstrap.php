@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Common\Bootstrap;
 
 use App\Common\Contracts\CorrelationIdProviderInterface;
+use App\Common\Contracts\LocaleResolverInterface;
 use App\Common\Contracts\RequestResponseLoggerInterface;
 use Yii;
 use yii\base\Application;
@@ -35,6 +36,9 @@ final class ApplicationBootstrap implements BootstrapInterface
     {
         $provider = Yii::$container->get(CorrelationIdProviderInterface::class);
         $provider->initialize();
+
+        $localeResolver = Yii::$container->get(LocaleResolverInterface::class);
+        Yii::$app->language = $localeResolver->resolve();
     }
 
     /**
@@ -47,6 +51,10 @@ final class ApplicationBootstrap implements BootstrapInterface
 
         if (Yii::$app->response instanceof Response) {
             Yii::$app->response->headers->set('X-Correlation-Id', $provider->get());
+            Yii::$app->response->headers->set(
+                'Content-Language',
+                Yii::$container->get(LocaleResolverInterface::class)->resolve()
+            );
         }
 
         $logger->logRequest(Yii::$app->request);

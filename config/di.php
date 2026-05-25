@@ -9,6 +9,7 @@ use App\Common\Contracts\CorrelationIdProviderInterface;
 use App\Common\Contracts\FeatureFlagInterface;
 use App\Common\Contracts\HttpClientInterface;
 use App\Common\Contracts\JwtServiceInterface;
+use App\Common\Contracts\LocaleResolverInterface;
 use App\Common\Contracts\RateLimiterInterface;
 use App\Common\Contracts\RequestResponseLoggerInterface;
 use App\Common\Contracts\SearchServiceInterface;
@@ -23,6 +24,7 @@ use App\Common\Http\SimpleCircuitBreaker;
 use App\Common\Logging\CorrelationIdProvider;
 use App\Common\Logging\DbApiLogWriter;
 use App\Common\Logging\RequestResponseLogger;
+use App\Common\Localization\RequestLocaleResolver;
 use App\Common\Services\ArrayFeatureFlagService;
 use App\Common\Services\FirebaseJwtService;
 use App\Common\Services\RedisRateLimiter;
@@ -108,6 +110,7 @@ return [
     JwtServiceInterface::class => FirebaseJwtService::class,
     CircuitBreakerInterface::class => SimpleCircuitBreaker::class,
     ApiLogWriterInterface::class => DbApiLogWriter::class,
+    LocaleResolverInterface::class => RequestLocaleResolver::class,
     DomainEventBusInterface::class => QueuedDomainEventBus::class,
     DomainEventDispatcherInterface::class => SyncDomainEventDispatcher::class,
     DomainEventSubscriberRegistry::class => static fn (): DomainEventSubscriberRegistry => new DomainEventSubscriberRegistry([

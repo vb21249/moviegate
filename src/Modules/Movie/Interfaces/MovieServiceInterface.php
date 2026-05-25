@@ -28,7 +28,7 @@ interface MovieServiceInterface
      *
      * @return MovieResponse
      */
-    public function view(int $movieId): MovieResponse;
+    public function view(int $movieId, ?string $language = null): MovieResponse;
 
     /**
      * Marks a movie as watched for a user.
@@ -38,5 +38,5 @@ interface MovieServiceInterface
      *
      * @return MovieResponse
      */
-    public function watch(int $movieId, int $userId): MovieResponse;
+    public function watch(int $movieId, int $userId, ?string $language = null): MovieResponse;
 }

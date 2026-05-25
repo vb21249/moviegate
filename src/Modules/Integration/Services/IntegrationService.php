@@ -52,7 +52,8 @@ final class IntegrationService extends AbstractService implements IntegrationSer
             $tmdbMovie = $this->resolveTmdbMovie($request);
             $mappedMovie = $this->tmdbMovieMapper->mapToCatalogMovie(
                 $tmdbMovie,
-                $this->tmdbImageBaseUri()
+                $this->tmdbImageBaseUri(),
+                $request->language()
             );
             $movie = $this->movieRepository->upsertImportedMovie($mappedMovie);
             $responsePayload = [
