@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Integration\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Integration\Exceptions\IntegrationException;
@@ -23,7 +24,11 @@ final class IntegrationController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth(['index', 'tmdb-sync', 'soap-ping']);
+        return $this->requireBearerAuthWithRbac([
+            'index' => RbacPermission::INTEGRATION_ACCESS,
+            'tmdb-sync' => RbacPermission::INTEGRATION_SYNC,
+            'soap-ping' => RbacPermission::INTEGRATION_ACCESS,
+        ]);
     }
 
     public function __construct(

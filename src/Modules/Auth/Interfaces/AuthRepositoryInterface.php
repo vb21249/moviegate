@@ -43,6 +43,11 @@ interface AuthRepositoryInterface
     public function createUser(CreateUserDto $dto): UserRecord;
 
     /**
+     * @param int $userId
+     */
+    public function assignDefaultRole(int $userId): void;
+
+    /**
      * @param AuthSessionDataDto $dto
      *
      * @return AuthRecord

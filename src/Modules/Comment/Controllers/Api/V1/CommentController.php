@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Comment\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Comment\Exceptions\CommentException;
@@ -23,7 +24,13 @@ final class CommentController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth(['create', 'reply', 'update', 'delete', 'like']);
+        return $this->requireBearerAuthWithRbac([
+            'create' => RbacPermission::COMMENT_CREATE,
+            'reply' => RbacPermission::COMMENT_REPLY,
+            'update' => RbacPermission::COMMENT_UPDATE,
+            'delete' => RbacPermission::COMMENT_DELETE,
+            'like' => RbacPermission::COMMENT_LIKE,
+        ]);
     }
 
     public function __construct(

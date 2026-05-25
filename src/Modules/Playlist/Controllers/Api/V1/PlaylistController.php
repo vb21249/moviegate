@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Playlist\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Playlist\Exceptions\PlaylistException;
@@ -24,14 +25,14 @@ final class PlaylistController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth([
-            'index',
-            'view',
-            'create',
-            'update',
-            'delete',
-            'add-movie',
-            'remove-movie',
+        return $this->requireBearerAuthWithRbac([
+            'index' => RbacPermission::PLAYLIST_READ,
+            'view' => RbacPermission::PLAYLIST_READ,
+            'create' => RbacPermission::PLAYLIST_CREATE,
+            'update' => RbacPermission::PLAYLIST_UPDATE,
+            'delete' => RbacPermission::PLAYLIST_DELETE,
+            'add-movie' => RbacPermission::PLAYLIST_MOVIE_MANAGE,
+            'remove-movie' => RbacPermission::PLAYLIST_MOVIE_MANAGE,
         ]);
     }
 

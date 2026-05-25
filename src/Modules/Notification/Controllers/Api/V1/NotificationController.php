@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Notification\Exceptions\NotificationException;
@@ -23,7 +24,12 @@ final class NotificationController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth(['index', 'view', 'mark-read', 'mark-all-read']);
+        return $this->requireBearerAuthWithRbac([
+            'index' => RbacPermission::NOTIFICATION_READ,
+            'view' => RbacPermission::NOTIFICATION_READ,
+            'mark-read' => RbacPermission::NOTIFICATION_UPDATE,
+            'mark-all-read' => RbacPermission::NOTIFICATION_UPDATE,
+        ]);
     }
 
     public function __construct(

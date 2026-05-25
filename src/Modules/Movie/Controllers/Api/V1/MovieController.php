@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Movie\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Movie\Exceptions\MovieException;
@@ -17,7 +18,9 @@ final class MovieController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth(['watch']);
+        return $this->requireBearerAuthWithRbac([
+            'watch' => RbacPermission::MOVIE_WATCH,
+        ]);
     }
 
     public function __construct(

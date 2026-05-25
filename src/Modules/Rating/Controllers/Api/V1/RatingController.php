@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Rating\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
 use App\Modules\Rating\Exceptions\RatingException;
@@ -23,7 +24,12 @@ final class RatingController extends BaseApiController
      */
     public function behaviors(): array
     {
-        return $this->requireBearerAuth(['create', 'update', 'delete', 'history']);
+        return $this->requireBearerAuthWithRbac([
+            'create' => RbacPermission::RATING_CREATE,
+            'update' => RbacPermission::RATING_UPDATE,
+            'delete' => RbacPermission::RATING_DELETE,
+            'history' => RbacPermission::RATING_HISTORY,
+        ]);
     }
 
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Recommendation\Controllers\Api\V1;
 
+use App\Common\Auth\RbacPermission;
 use App\Common\Components\JwtBearerAuth;
 use App\Common\Controllers\BaseApiController;
 use App\Common\Transformers\ApiResponseTransformer;
@@ -31,7 +32,9 @@ final class RecommendationController extends BaseApiController
             'optional' => ['index'],
         ];
 
-        return $behaviors;
+        return $this->withRbac($behaviors, [
+            'rebuild' => RbacPermission::RECOMMENDATION_REBUILD,
+        ]);
     }
 
     public function __construct(

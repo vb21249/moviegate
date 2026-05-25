@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Repositories;
 
+use App\Common\Auth\RbacRole;
 use App\Common\Repositories\BaseRepository;
 use App\Modules\Auth\DTO\AuthSessionDataDto;
 use App\Modules\Auth\DTO\CreateUserDto;
@@ -11,6 +12,7 @@ use App\Modules\Auth\Exceptions\AuthException;
 use App\Modules\Auth\Interfaces\AuthRepositoryInterface;
 use App\Modules\Auth\Models\AuthRecord;
 use App\Modules\User\Models\UserRecord;
+use Yii;
 use yii\db\Expression;
 
 /**
@@ -59,6 +61,24 @@ final class AuthRepository extends BaseRepository implements AuthRepositoryInter
         }
 
         return $user;
+    }
+
+    public function assignDefaultRole(int $userId): void
+    {
+        $auth = Yii::$app->authManager;
+        $role = $auth->getRole(RbacRole::USER);
+
+        if ($role === null) {
+            throw new AuthException(
+                'The default RBAC role is not configured',
+                500,
+                AuthException::CODE_USER_CREATE_FAILED
+            );
+        }
+
+        if ($auth->getAssignment(RbacRole::USER, (string) $userId) === null) {
+            $auth->assign($role, (string) $userId);
+        }
     }
 
     public function createSession(AuthSessionDataDto $dto): AuthRecord

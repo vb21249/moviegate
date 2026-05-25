@@ -61,6 +61,7 @@ final class AuthService extends AbstractService implements AuthServiceInterface
             username: trim($request->username),
             passwordHash: Yii::$app->security->generatePasswordHash($request->password),
         ));
+        $this->repository->assignDefaultRole((int) $user->id);
 
         $tokens = $this->issueTokenPair($user);
         $verificationToken = $this->buildActionToken(

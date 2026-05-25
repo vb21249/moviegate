@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Common\Controllers;
 
+use App\Common\Exceptions\ApiException;
 use App\Common\Components\JwtBearerAuth;
 use App\Common\Dto\ApiResponseDto;
 use App\Common\Responses\PaginatedResponse;
 use App\Common\Transformers\ApiResponseTransformer;
+use yii\filters\AccessControl;
 use yii\rest\Controller;
 
 /**
@@ -78,6 +80,50 @@ abstract class BaseApiController extends Controller
         $behaviors['authenticator'] = [
             'class' => JwtBearerAuth::class,
             'only' => $only,
+        ];
+
+        return $behaviors;
+    }
+
+    /**
+     * @param array<string, string> $permissionsByAction
+     *
+     * @return array<string, mixed>
+     */
+    protected function requireBearerAuthWithRbac(array $permissionsByAction): array
+    {
+        return $this->withRbac($this->requireBearerAuth(array_keys($permissionsByAction)), $permissionsByAction);
+    }
+
+    /**
+     * @param array<string, mixed> $behaviors
+     * @param array<string, string> $permissionsByAction
+     *
+     * @return array<string, mixed>
+     */
+    protected function withRbac(array $behaviors, array $permissionsByAction): array
+    {
+        $behaviors['access'] = [
+            'class' => AccessControl::class,
+            'only' => array_keys($permissionsByAction),
+            'rules' => [
+                [
+                    'allow' => true,
+                    'roles' => ['@'],
+                    'matchCallback' => static function ($rule, $action) use ($permissionsByAction): bool {
+                        $permission = $permissionsByAction[$action->id] ?? null;
+
+                        return $permission !== null && \Yii::$app->user->can($permission);
+                    },
+                ],
+            ],
+            'denyCallback' => static function (): void {
+                throw new ApiException(
+                    'You do not have permission to perform this action.',
+                    403,
+                    'forbidden'
+                );
+            },
         ];
 
         return $behaviors;
