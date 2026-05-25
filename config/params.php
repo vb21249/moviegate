@@ -27,6 +27,10 @@ return [
         'requests' => (int) ($_ENV['RATE_LIMIT_REQUESTS'] ?? 60),
         'period' => (int) ($_ENV['RATE_LIMIT_PERIOD'] ?? 60),
     ],
+    'logRetention' => [
+        'apiDays' => (int) ($_ENV['API_LOG_RETENTION_DAYS'] ?? 30),
+        'integrationDays' => (int) ($_ENV['INTEGRATION_LOG_RETENTION_DAYS'] ?? 90),
+    ],
     'features' => [
         'registration' => filter_var($_ENV['FEATURE_REGISTRATION_ENABLED'] ?? true, FILTER_VALIDATE_BOOL),
         'recommendations' => filter_var($_ENV['FEATURE_RECOMMENDATIONS_ENABLED'] ?? false, FILTER_VALIDATE_BOOL),

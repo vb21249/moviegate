@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 return [
     'GET health' => 'common/health/index',
+    'GET api/v1/logs/api' => 'common/log/index',
+    'GET api/v1/logs/api/summary' => 'common/log/summary',
+    'GET api/v1/logs/api/<id:\d+>' => 'common/log/view',
     'POST api/v1/auth/signup' => 'auth/auth/signup',
     'POST api/v1/auth/login' => 'auth/auth/login',
     'POST api/v1/auth/logout' => 'auth/auth/logout',

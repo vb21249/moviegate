@@ -33,6 +33,7 @@ final class RbacPermission
     public const RECOMMENDATION_REBUILD = 'recommendation.rebuild';
     public const INTEGRATION_ACCESS = 'integration.access';
     public const INTEGRATION_SYNC = 'integration.sync';
+    public const LOGGING_ACCESS = 'logging.access';
 
     /**
      * @return array<string, string>
@@ -64,6 +65,7 @@ final class RbacPermission
             self::RECOMMENDATION_REBUILD => 'Rebuild own recommendations',
             self::INTEGRATION_ACCESS => 'Read integration diagnostics',
             self::INTEGRATION_SYNC => 'Run external integration sync',
+            self::LOGGING_ACCESS => 'Read application logging diagnostics',
         ];
     }
 
@@ -106,6 +108,7 @@ final class RbacPermission
         return [
             self::INTEGRATION_ACCESS,
             self::INTEGRATION_SYNC,
+            self::LOGGING_ACCESS,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Common\Contracts\ApiLogWriterInterface;
 use App\Common\Contracts\CacheInterface;
 use App\Common\Contracts\CircuitBreakerInterface;
 use App\Common\Contracts\CorrelationIdProviderInterface;
@@ -20,6 +21,7 @@ use App\Common\Events\SyncDomainEventDispatcher;
 use App\Common\Http\GuzzleHttpClient;
 use App\Common\Http\SimpleCircuitBreaker;
 use App\Common\Logging\CorrelationIdProvider;
+use App\Common\Logging\DbApiLogWriter;
 use App\Common\Logging\RequestResponseLogger;
 use App\Common\Services\ArrayFeatureFlagService;
 use App\Common\Services\FirebaseJwtService;
@@ -105,6 +107,7 @@ return [
     FeatureFlagInterface::class => ArrayFeatureFlagService::class,
     JwtServiceInterface::class => FirebaseJwtService::class,
     CircuitBreakerInterface::class => SimpleCircuitBreaker::class,
+    ApiLogWriterInterface::class => DbApiLogWriter::class,
     DomainEventBusInterface::class => QueuedDomainEventBus::class,
     DomainEventDispatcherInterface::class => SyncDomainEventDispatcher::class,
     DomainEventSubscriberRegistry::class => static fn (): DomainEventSubscriberRegistry => new DomainEventSubscriberRegistry([
