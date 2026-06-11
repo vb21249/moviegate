@@ -36,6 +36,8 @@ use App\Modules\Common\Repositories\CommonRepository;
 use App\Modules\Common\Services\CommonService;
 use App\Modules\Integration\Clients\LegacySoapGateway;
 use App\Modules\Integration\Clients\LegacySoapGatewayInterface;
+use App\Modules\Integration\Clients\OmdbClient;
+use App\Modules\Integration\Clients\OmdbClientInterface;
 use App\Modules\Integration\Clients\TmdbClient;
 use App\Modules\Integration\Clients\TmdbClientInterface;
 use App\Modules\Auth\Interfaces\AuthRepositoryInterface;
@@ -160,5 +162,6 @@ return [
     NotificationRepositoryInterface::class => NotificationRepository::class,
     SearchRepositoryInterface::class => SearchRepository::class,
     TmdbClientInterface::class => TmdbClient::class,
+    OmdbClientInterface::class => OmdbClient::class,
     LegacySoapGatewayInterface::class => LegacySoapGateway::class,
 ];

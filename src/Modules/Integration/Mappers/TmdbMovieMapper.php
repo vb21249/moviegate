@@ -35,7 +35,10 @@ final class TmdbMovieMapper
         $releaseDate = $this->normalizeReleaseDate($tmdbMovie['release_date'] ?? null);
 
         return [
+            'source_provider' => 'tmdb',
+            'external_id' => (string) $tmdbId,
             'tmdb_id' => $tmdbId,
+            'imdb_id' => $this->imdbId($tmdbMovie['imdb_id'] ?? null),
             'slug' => $this->slug($title, $releaseDate, $tmdbId),
             'title' => $title,
             'original_title' => $this->nullableString($tmdbMovie['original_title'] ?? null),
@@ -74,6 +77,17 @@ final class TmdbMovieMapper
         $value = (int) $value;
 
         return $value > 0 ? $value : null;
+    }
+
+    private function imdbId(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = strtolower(trim($value));
+
+        return preg_match('/^tt\d{7,10}$/', $value) === 1 ? $value : null;
     }
 
     private function imageUrl(mixed $path, string $imageBaseUri): ?string

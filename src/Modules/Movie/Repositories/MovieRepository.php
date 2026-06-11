@@ -19,6 +19,7 @@ final class MovieRepository extends BaseRepository implements MovieRepositoryInt
 {
     private const MOVIES_TABLE = '{{%movies}}';
     private const MOVIE_TRANSLATIONS_TABLE = '{{%movie_translations}}';
+    private const MOVIE_EXTERNAL_IDS_TABLE = '{{%movie_external_ids}}';
     private const RATINGS_TABLE = '{{%ratings}}';
     private const REVIEWS_TABLE = '{{%reviews}}';
     private const COMMENTS_TABLE = '{{%comments}}';
@@ -80,42 +81,60 @@ final class MovieRepository extends BaseRepository implements MovieRepositoryInt
 
     public function upsertImportedMovie(array $movie): array
     {
-        $tmdbId = (int) $movie['tmdb_id'];
         $now = new Expression('NOW()');
         $language = $this->normalizeLanguage($movie['language'] ?? null);
-        $existing = $this->findMovieByTmdbId($tmdbId);
+        $externalIds = $this->externalIdentifiers($movie);
+        $tmdbId = $this->positiveInt($movie['tmdb_id'] ?? null);
+        $existing = $this->findExistingImportedMovie($movie, $externalIds, $tmdbId);
         $updateBaseText = $existing === null || $language === null || $language === $this->defaultLanguage();
         $baseSlug = $updateBaseText ? (string) $movie['slug'] : (string) $existing['slug'];
         $baseTitle = $updateBaseText ? (string) $movie['title'] : (string) $existing['title'];
         $baseOriginalTitle = $updateBaseText ? ($movie['original_title'] ?? null) : ($existing['original_title'] ?? null);
         $baseOverview = $updateBaseText ? ($movie['overview'] ?? null) : ($existing['overview'] ?? null);
         $columns = [
-            'tmdb_id' => $tmdbId,
+            'tmdb_id' => $tmdbId ?? $this->existingValue($existing, 'tmdb_id'),
             'slug' => $baseSlug,
             'title' => $baseTitle,
             'original_title' => $baseOriginalTitle,
             'overview' => $baseOverview,
-            'poster_url' => $movie['poster_url'] ?? null,
-            'backdrop_url' => $movie['backdrop_url'] ?? null,
-            'release_date' => $movie['release_date'] ?? null,
-            'runtime_minutes' => $movie['runtime_minutes'] ?? null,
+            'poster_url' => $movie['poster_url'] ?? $this->existingValue($existing, 'poster_url'),
+            'backdrop_url' => $movie['backdrop_url'] ?? $this->existingValue($existing, 'backdrop_url'),
+            'release_date' => $movie['release_date'] ?? $this->existingValue($existing, 'release_date'),
+            'runtime_minutes' => $movie['runtime_minutes'] ?? $this->existingValue($existing, 'runtime_minutes'),
             'status' => $movie['status'] ?? MovieStatus::Active->value,
             'created_at' => $now,
             'updated_at' => $now,
         ];
-        $updates = $columns;
-        unset($updates['tmdb_id'], $updates['created_at']);
-        $updates['updated_at'] = $now;
 
-        $this->db()
-            ->createCommand()
-            ->upsert(self::MOVIES_TABLE, $columns, $updates)
-            ->execute();
+        if ($existing !== null) {
+            $updates = $columns;
+            unset($updates['created_at']);
+            $updates['updated_at'] = $now;
 
-        $record = $this->findMovieByTmdbId($tmdbId);
+            $this->db()->createCommand()
+                ->update(self::MOVIES_TABLE, $updates, ['id' => (int) $existing['id']])
+                ->execute();
+
+            $record = $this->findMovieById((int) $existing['id']);
+        } else {
+            $this->db()->createCommand()
+                ->insert(self::MOVIES_TABLE, $columns)
+                ->execute();
+
+            $record = $this->findMovieById((int) $this->db()->getLastInsertID());
+        }
 
         if ($record === null) {
             throw new RuntimeException('Imported movie was not found after upsert.');
+        }
+
+        foreach ($externalIds as $externalId) {
+            $this->upsertExternalId(
+                (int) $record['id'],
+                $externalId['provider'],
+                $externalId['external_id'],
+                $now
+            );
         }
 
         if ($language !== null) {
@@ -148,29 +167,218 @@ final class MovieRepository extends BaseRepository implements MovieRepositoryInt
         )->execute();
     }
 
+    /**
+     * @param array<string, mixed> $movie
+     * @param list<array{provider: string, external_id: string}> $externalIds
+     *
+     * @return array<string, mixed>|null
+     */
+    private function findExistingImportedMovie(array $movie, array $externalIds, ?int $tmdbId): ?array
+    {
+        foreach ($externalIds as $externalId) {
+            $record = $this->findMovieByExternalId($externalId['provider'], $externalId['external_id']);
+
+            if ($record !== null) {
+                return $record;
+            }
+        }
+
+        if ($tmdbId !== null) {
+            $record = $this->findMovieByTmdbId($tmdbId);
+
+            if ($record !== null) {
+                return $record;
+            }
+        }
+
+        return $this->findMovieByNaturalKey($movie);
+    }
+
+    /**
+     * @param array<string, mixed> $movie
+     *
+     * @return list<array{provider: string, external_id: string}>
+     */
+    private function externalIdentifiers(array $movie): array
+    {
+        $identifiers = [];
+
+        $this->addExternalIdentifier(
+            $identifiers,
+            (string) ($movie['source_provider'] ?? ''),
+            $movie['external_id'] ?? null
+        );
+
+        if (($tmdbId = $this->positiveInt($movie['tmdb_id'] ?? null)) !== null) {
+            $this->addExternalIdentifier($identifiers, 'tmdb', (string) $tmdbId);
+        }
+
+        if (($imdbId = $this->imdbId($movie['imdb_id'] ?? null)) !== null) {
+            $this->addExternalIdentifier($identifiers, 'imdb', $imdbId);
+        }
+
+        return $identifiers;
+    }
+
+    /**
+     * @param list<array{provider: string, external_id: string}> $identifiers
+     */
+    private function addExternalIdentifier(array &$identifiers, string $provider, mixed $externalId): void
+    {
+        $provider = strtolower(trim($provider));
+        $externalId = is_scalar($externalId) ? strtolower(trim((string) $externalId)) : '';
+
+        if ($provider === '' || $externalId === '') {
+            return;
+        }
+
+        foreach ($identifiers as $identifier) {
+            if ($identifier['provider'] === $provider && $identifier['external_id'] === $externalId) {
+                return;
+            }
+        }
+
+        $identifiers[] = [
+            'provider' => $provider,
+            'external_id' => $externalId,
+        ];
+    }
+
+    private function upsertExternalId(int $movieId, string $provider, string $externalId, Expression $now): void
+    {
+        $columns = [
+            'movie_id' => $movieId,
+            'provider' => $provider,
+            'external_id' => $externalId,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        $updates = $columns;
+        unset($updates['provider'], $updates['external_id'], $updates['created_at']);
+        $updates['updated_at'] = $now;
+
+        $this->db()->createCommand()
+            ->upsert(self::MOVIE_EXTERNAL_IDS_TABLE, $columns, $updates)
+            ->execute();
+    }
+
+    private function findMovieById(int $movieId): ?array
+    {
+        $record = (new Query())
+            ->select($this->movieSelectColumns())
+            ->from(self::MOVIES_TABLE)
+            ->where(['id' => $movieId])
+            ->one($this->db());
+
+        return $record === false ? null : $record;
+    }
+
     private function findMovieByTmdbId(int $tmdbId): ?array
     {
         $record = (new Query())
-            ->select([
-                'id',
-                'tmdb_id',
-                'slug',
-                'title',
-                'original_title',
-                'overview',
-                'poster_url',
-                'backdrop_url',
-                'release_date',
-                'runtime_minutes',
-                'status',
-                'created_at',
-                'updated_at',
-            ])
+            ->select($this->movieSelectColumns())
             ->from(self::MOVIES_TABLE)
             ->where(['tmdb_id' => $tmdbId])
             ->one($this->db());
 
         return $record === false ? null : $record;
+    }
+
+    private function findMovieByExternalId(string $provider, string $externalId): ?array
+    {
+        $record = (new Query())
+            ->select($this->movieSelectColumns('m'))
+            ->from(['m' => self::MOVIES_TABLE])
+            ->innerJoin(
+                ['mei' => self::MOVIE_EXTERNAL_IDS_TABLE],
+                'mei.movie_id = m.id'
+            )
+            ->andWhere([
+                'mei.provider' => $provider,
+                'mei.external_id' => $externalId,
+            ])
+            ->one($this->db());
+
+        return $record === false ? null : $record;
+    }
+
+    /**
+     * @param array<string, mixed> $movie
+     *
+     * @return array<string, mixed>|null
+     */
+    private function findMovieByNaturalKey(array $movie): ?array
+    {
+        $title = trim((string) ($movie['original_title'] ?? $movie['title'] ?? ''));
+        $releaseDate = $movie['release_date'] ?? null;
+
+        if ($title === '' || !is_string($releaseDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $releaseDate)) {
+            return null;
+        }
+
+        $record = (new Query())
+            ->select($this->movieSelectColumns())
+            ->from(self::MOVIES_TABLE)
+            ->andWhere(['deleted_at' => null])
+            ->andWhere(['release_date' => $releaseDate])
+            ->andWhere([
+                'or',
+                ['title' => $title],
+                ['original_title' => $title],
+            ])
+            ->one($this->db());
+
+        return $record === false ? null : $record;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function movieSelectColumns(?string $alias = null): array
+    {
+        $prefix = $alias !== null ? $alias . '.' : '';
+
+        return [
+            'id' => $prefix . 'id',
+            'tmdb_id' => $prefix . 'tmdb_id',
+            'slug' => $prefix . 'slug',
+            'title' => $prefix . 'title',
+            'original_title' => $prefix . 'original_title',
+            'overview' => $prefix . 'overview',
+            'poster_url' => $prefix . 'poster_url',
+            'backdrop_url' => $prefix . 'backdrop_url',
+            'release_date' => $prefix . 'release_date',
+            'runtime_minutes' => $prefix . 'runtime_minutes',
+            'status' => $prefix . 'status',
+            'created_at' => $prefix . 'created_at',
+            'updated_at' => $prefix . 'updated_at',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed>|null $existing
+     */
+    private function existingValue(?array $existing, string $key): mixed
+    {
+        return $existing[$key] ?? null;
+    }
+
+    private function positiveInt(mixed $value): ?int
+    {
+        $value = (int) $value;
+
+        return $value > 0 ? $value : null;
+    }
+
+    private function imdbId(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = strtolower(trim($value));
+
+        return preg_match('/^tt\d{7,10}$/', $value) === 1 ? $value : null;
     }
 
     /**

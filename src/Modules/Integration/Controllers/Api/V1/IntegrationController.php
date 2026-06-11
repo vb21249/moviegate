@@ -27,6 +27,7 @@ final class IntegrationController extends BaseApiController
         return $this->requireBearerAuthWithRbac([
             'index' => RbacPermission::INTEGRATION_ACCESS,
             'tmdb-sync' => RbacPermission::INTEGRATION_SYNC,
+            'omdb-sync' => RbacPermission::INTEGRATION_SYNC,
             'soap-ping' => RbacPermission::INTEGRATION_ACCESS,
         ]);
     }
@@ -60,7 +61,19 @@ final class IntegrationController extends BaseApiController
      */
     public function actionTmdbSync(): array
     {
-        return $this->success($this->service->syncTmdb($this->validateTmdbSyncRequest())->toArray());
+        return $this->success($this->service
+            ->syncTmdb($this->validateRequest(IntegrationRequest::SCENARIO_TMDB_SYNC))
+            ->toArray());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function actionOmdbSync(): array
+    {
+        return $this->success($this->service
+            ->syncOmdb($this->validateRequest(IntegrationRequest::SCENARIO_OMDB_SYNC))
+            ->toArray());
     }
 
     /**
@@ -77,9 +90,9 @@ final class IntegrationController extends BaseApiController
         );
     }
 
-    private function validateTmdbSyncRequest(): IntegrationRequest
+    private function validateRequest(string $scenario): IntegrationRequest
     {
-        $request = new IntegrationRequest();
+        $request = new IntegrationRequest(['scenario' => $scenario]);
         $request->load(\Yii::$app->request->bodyParams, '');
 
         if (!$request->validate()) {

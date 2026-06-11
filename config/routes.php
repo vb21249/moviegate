@@ -52,6 +52,7 @@ return [
     'GET api/v1/recommendations' => 'recommendation/recommendation/index',
     'POST api/v1/recommendations/rebuild' => 'recommendation/recommendation/rebuild',
     'POST api/v1/integrations/tmdb/sync' => 'integration/integration/tmdb-sync',
+    'POST api/v1/integrations/omdb/sync' => 'integration/integration/omdb-sync',
     'GET api/v1/notifications' => 'notification/notification/index',
     'GET api/v1/notifications/<id:\d+>' => 'notification/notification/view',
     'PATCH api/v1/notifications/read-all' => 'notification/notification/mark-all-read',

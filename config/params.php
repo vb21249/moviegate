@@ -18,6 +18,10 @@ return [
         'apiKey' => $_ENV['TMDB_API_KEY'] ?? '',
         'accessToken' => $_ENV['TMDB_ACCESS_TOKEN'] ?? '',
     ],
+    'omdb' => [
+        'baseUri' => $_ENV['OMDB_BASE_URI'] ?? 'https://www.omdbapi.com/',
+        'apiKey' => $_ENV['OMDB_API_KEY'] ?? '',
+    ],
     'soap' => [
         'endpoint' => $_ENV['SOAP_ENDPOINT'] ?? '',
         'login' => $_ENV['SOAP_LOGIN'] ?? '',

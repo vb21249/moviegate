@@ -52,6 +52,9 @@ final class RetryPolicy
             return true;
         }
 
-        return $exception->getErrorCode() === IntegrationException::CODE_TMDB_REQUEST_FAILED;
+        return in_array($exception->getErrorCode(), [
+            IntegrationException::CODE_TMDB_REQUEST_FAILED,
+            IntegrationException::CODE_OMDB_REQUEST_FAILED,
+        ], true);
     }
 }

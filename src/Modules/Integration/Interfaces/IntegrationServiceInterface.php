@@ -26,4 +26,11 @@ interface IntegrationServiceInterface
      * @return IntegrationResponse
      */
     public function syncTmdb(IntegrationRequest $request): IntegrationResponse;
+
+    /**
+     * @param IntegrationRequest $request
+     *
+     * @return IntegrationResponse
+     */
+    public function syncOmdb(IntegrationRequest $request): IntegrationResponse;
 }
