@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    'GET docs' => 'common/docs/index',
+    'GET docs/openapi.json' => 'common/docs/openapi',
     'GET health' => 'common/health/index',
     'GET api/v1/logs/api' => 'common/log/index',
     'GET api/v1/logs/api/summary' => 'common/log/summary',
